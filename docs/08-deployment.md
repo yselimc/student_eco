@@ -54,18 +54,26 @@ cd backend && alembic upgrade head
 
 `docker-compose.yml` at the repo root defines a single Postgres service. The apps run on the host (faster reloads). Docker is only there to avoid installing Postgres directly.
 
+The host port is **5433** (not the Postgres default 5432) to avoid colliding with a system-installed Postgres on dev machines that already have one running. The container's internal port stays at 5432, so connection strings from the host use `localhost:5433` while anything inside Docker would use `db:5432`.
+
 ```yaml
 services:
   db:
     image: postgres:15
+    container_name: student_eco_db
     environment:
       POSTGRES_USER: student
       POSTGRES_PASSWORD: student
       POSTGRES_DB: student_eco
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U student -d student_eco"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 volumes:
   pgdata:
 ```
@@ -78,7 +86,7 @@ Containerizing the backend and frontend is intentionally out of scope for v1 —
 
 | Variable           | Required | Example                                                | Purpose                                |
 |--------------------|----------|--------------------------------------------------------|----------------------------------------|
-| `DATABASE_URL`     | yes      | `postgresql+psycopg://student:student@localhost/student_eco` | SQLAlchemy connection string     |
+| `DATABASE_URL`     | yes      | `postgresql+psycopg://student:student@localhost:5433/student_eco` | SQLAlchemy connection string (port 5433 — see §2) |
 | `JWT_SECRET`       | yes      | `<long random string>`                                 | HS256 signing key                      |
 | `JWT_ALGORITHM`    | no       | `HS256`                                                | Default `HS256`                        |
 | `JWT_EXPIRE_DAYS`  | no       | `7`                                                    | Default `7`                            |

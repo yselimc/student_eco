@@ -1,0 +1,36 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+.next/
+.pnpm-store/
+*.tsbuildinfo
+next-env.d.ts
+
+# Env files (never commit secrets)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Runtime uploads
+backend/uploads/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+*.pid
