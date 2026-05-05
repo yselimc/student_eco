@@ -210,9 +210,24 @@ Each entry lists the components, shadcn primitives, API calls, and a text wirefr
 
 ## 5. Auth integration
 
-- JWT lives in `localStorage` under key `auth_token` (client) and a `Set-Cookie` from a small Next.js route handler `/api/auth/cookie` (server, for SSR usage). Pick one in the implementation; `lib/auth.ts` abstracts the detail.
-- `lib/api/client.ts` injects `Authorization: Bearer ...` from whichever side it runs on.
+- **v1 decision: JWT lives in `localStorage`** under key `auth_token`. Read/written by `lib/auth.ts` from client components. Server components that need the user load it via a small client-side bootstrap (the protected pages are mostly client-rendered already).
+- `lib/api/client.ts` injects `Authorization: Bearer ...` from `localStorage` on the client and from a request header on the server (when called via SSR after a client fetch hands off the token).
 - A 401 response triggers a redirect to `/login` (client side) or a Next.js `redirect()` (server side).
+
+### 5.1 Security tradeoffs
+
+`localStorage` is the simpler choice but it has a known XSS footgun: any script that runs in the page can read the token. The risk is small in v1 because we don't render unsanitized user-generated HTML — all user input is rendered as text via React and listing/note descriptions are plain strings. Adding rich-text or markdown rendering later raises the risk and should be paired with the migration below.
+
+It also avoids the CSRF concerns that come with cookie-based auth, but at the cost of XSS exposure rather than eliminating both.
+
+**Future work — migrate to `httpOnly` cookies:**
+
+- Add a Next.js route handler at `/api/auth/cookie` that takes the JWT from a login response and sets `Set-Cookie: auth_token=...; HttpOnly; Secure; SameSite=Lax; Path=/`
+- Read the cookie in server components and forward it as a `Cookie` header to the FastAPI backend (or convert to `Authorization` server-side)
+- Remove `localStorage` usage from `lib/auth.ts`; the cookie is now the single source of truth
+- Add CSRF protection to state-changing endpoints (double-submit token or origin check) since cookies are sent automatically
+
+The migration is mechanical and isolated to `lib/auth.ts` + a new route handler — no API surface changes — which is why we can defer it past v1 without painting ourselves into a corner.
 
 ## Related documents
 
