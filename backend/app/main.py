@@ -2,13 +2,14 @@ import logging
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.config import settings
 from app.core.exceptions import AppError
 from app.core.logging import configure_logging
-from app.routes import health
+from app.routes import auth, health
 
 configure_logging(settings.log_level)
 logger = logging.getLogger(__name__)
@@ -27,7 +28,18 @@ _HTTP_CODE_MAP = {
 
 def create_app() -> FastAPI:
     application = FastAPI(title="Student Ecosystem API", version="0.1.0")
+
+    cors_origins = [origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()]
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
     application.include_router(health.router)
+    application.include_router(auth.router)
 
     @application.exception_handler(AppError)
     async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
