@@ -20,5 +20,7 @@ class Settings(BaseSettings):
 
     upload_dir: str = "./uploads"
 
+    database_url: str
+
 
 settings = Settings()
