@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><title>Form inputs</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.field{display:flex;flex-direction:column;gap:6px}
+label{font:600 13px var(--font-sans);color:#0F172A}
+.help{font:400 12px var(--font-sans);color:hsl(var(--muted-foreground))}
+.input,.select,.textarea{height:40px;padding:0 12px;border:1px solid #E2E8F0;background:#fff;border-radius:8px;font:400 14px var(--font-sans);color:#0F172A;outline:none;transition:all 120ms}
+.input:focus,.select:focus,.textarea:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.2)}
+.textarea{height:64px;padding:8px 12px;resize:none}
+.input.err{border-color:#EF4444}
+.err-msg{font:500 12px var(--font-sans);color:#EF4444}
+.select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+</style></head><body>
+<div class="field"><label>E-posta</label><input class="input" placeholder="ornek@uni.edu.tr"><div class="help">Üniversite e-postan tercih edilir.</div></div>
+<div class="field"><label>Kurs kodu</label><select class="select"><option>CS301 — Algoritmalar</option></select></div>
+<div class="field"><label>Açıklama</label><textarea class="textarea" placeholder="Kısa bir açıklama yaz…"></textarea></div>
+<div class="field"><label>Şifre</label><input class="input err" type="password" value="abc"><div class="err-msg">En az 8 karakter olmalı.</div></div>
+</body></html>

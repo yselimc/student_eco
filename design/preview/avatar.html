@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><title>Avatar</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body{padding:20px;display:flex;gap:12px;align-items:center}
+.av{display:inline-flex;align-items:center;justify-content:center;border-radius:9999px;font:600 14px var(--font-sans);color:#fff;background:#7C3AED;border:1px solid #fff;box-shadow:var(--shadow-xs)}
+.s24{width:24px;height:24px;font-size:10px}
+.s32{width:32px;height:32px;font-size:12px}
+.s40{width:40px;height:40px;font-size:14px}
+.s56{width:56px;height:56px;font-size:18px}
+.bg-1{background:#7C3AED}.bg-2{background:#EC4899}.bg-3{background:#22C55E}.bg-4{background:#F97316}.bg-5{background:#3B82F6}
+.stack{display:inline-flex}.stack .av{margin-left:-10px}.stack .av:first-child{margin-left:0}
+.dot{width:10px;height:10px;border-radius:9999px;background:#22C55E;border:2px solid #fff;position:relative;left:-12px;top:14px}
+</style></head><body>
+<span class="av s24 bg-1">AS</span>
+<span class="av s32 bg-2">BJ</span>
+<span class="av s40 bg-3">CL</span>
+<span class="av s56 bg-4">YK</span>
+<div class="stack">
+  <span class="av s32 bg-1">AS</span>
+  <span class="av s32 bg-2">BJ</span>
+  <span class="av s32 bg-3">CL</span>
+  <span class="av s32 bg-5" style="background:#fff;color:#475569;border:1px solid #E2E8F0">+4</span>
+</div>
+<span class="av s40 bg-2">EM</span><span class="dot"></span>
+</body></html>

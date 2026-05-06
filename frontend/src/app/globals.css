@@ -4,48 +4,96 @@
 
 @layer base {
   :root {
+    /* Surfaces */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Brand: purple */
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --primary-strong: 263 70% 50%;
+    --primary-soft: 270 100% 98%;
+
+    /* Neutrals: slate */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 270 100% 98%;
+    --accent-foreground: 263 70% 50%;
+
+    /* Status */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
+    /* Lines & focus */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 262 83% 58%;
+
+    /* Module accents */
+    --notes: 217 91% 60%;
+    --market: 25 95% 53%;
+    --events: 142 71% 45%;
+    --buddy: 330 81% 60%;
+
+    /* Radii */
     --radius: 0.5rem;
+
+    /* Fonts (CSS variables wired in layout.tsx via next/font) */
+    --font-sans: var(--font-inter), var(--font-geist-sans), -apple-system,
+      BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: var(--font-jetbrains-mono), var(--font-geist-mono),
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 224 71% 4%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+
+    --primary: 262 83% 65%;
+    --primary-foreground: 0 0% 100%;
+    --primary-strong: 263 70% 58%;
+    --primary-soft: 263 38% 18%;
+
+    --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 263 38% 18%;
+    --accent-foreground: 270 100% 92%;
+
+    --destructive: 0 63% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 262 83% 65%;
+
+    --notes: 217 91% 65%;
+    --market: 25 95% 60%;
+    --events: 142 71% 50%;
+    --buddy: 330 81% 65%;
   }
 }
 
@@ -55,5 +103,48 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.25);
+  }
+}
+
+/* Typography helpers — sentence-case, Inter, tight tracking on headings */
+@layer components {
+  .t-display {
+    @apply font-sans text-5xl font-extrabold leading-[1.1] tracking-tight;
+  }
+  .t-h1 {
+    @apply font-sans text-4xl font-bold leading-[1.1] tracking-tight;
+  }
+  .t-h2 {
+    @apply font-sans text-3xl font-bold leading-snug tracking-tight;
+  }
+  .t-h3 {
+    @apply font-sans text-2xl font-semibold leading-snug;
+  }
+  .t-h4 {
+    @apply font-sans text-xl font-semibold leading-snug;
+  }
+  .t-lead {
+    @apply font-sans text-lg leading-relaxed text-muted-foreground;
+  }
+  .t-body {
+    @apply font-sans text-base leading-normal;
+  }
+  .t-small {
+    @apply font-sans text-sm leading-normal;
+  }
+  .t-mute {
+    @apply text-muted-foreground;
+  }
+  .t-mono {
+    @apply font-mono text-sm;
+  }
+  .t-label {
+    @apply font-sans text-xs font-semibold uppercase tracking-wide text-muted-foreground;
   }
 }

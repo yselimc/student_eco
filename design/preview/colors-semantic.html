@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><title>Colors — semantic</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 20px; }
+  .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .sw { border-radius: var(--r-md); border: 1px solid hsl(var(--border)); overflow: hidden; }
+  .chip { height: 64px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size: 13px; letter-spacing:-0.01em; }
+  .meta { padding: 8px 10px; background: hsl(var(--card)); }
+  .name { font-size: 13px; font-weight: 600; }
+  .hex { font-family: var(--font-mono); font-size: 11px; color: hsl(var(--muted-foreground)); }
+</style></head><body>
+<div class="row">
+  <div class="sw"><div class="chip" style="background:#EF4444">destructive</div><div class="meta"><div class="name">red-500</div><div class="hex">#EF4444</div></div></div>
+  <div class="sw"><div class="chip" style="background:#22C55E">success</div><div class="meta"><div class="name">green-500</div><div class="hex">#22C55E</div></div></div>
+  <div class="sw"><div class="chip" style="background:#F59E0B;color:#0F172A">warning</div><div class="meta"><div class="name">amber-500</div><div class="hex">#F59E0B</div></div></div>
+  <div class="sw"><div class="chip" style="background:#3B82F6">info</div><div class="meta"><div class="name">blue-500</div><div class="hex">#3B82F6</div></div></div>
+</div>
+</body></html>

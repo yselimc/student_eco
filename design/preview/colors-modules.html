@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><title>Module accents</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 20px; }
+  .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .card { border-radius: var(--r-lg); border: 1px solid hsl(var(--border)); padding: 14px; display:flex; align-items:center; gap:12px; background: hsl(var(--card)); }
+  .plate { width: 44px; height: 44px; border-radius: var(--r-md); display:flex; align-items:center; justify-content:center; }
+  .plate svg { width: 22px; height: 22px; stroke-width: 1.75; }
+  .name { font-size: 14px; font-weight: 600; }
+  .hex { font-family: var(--font-mono); font-size: 11px; color: hsl(var(--muted-foreground)); }
+</style></head><body>
+<div class="row">
+  <div class="card"><div class="plate" style="background:#DBEAFE"><svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div><div><div class="name">Notlar</div><div class="hex">#3B82F6 blue</div></div></div>
+  <div class="card"><div class="plate" style="background:#FFEDD5"><svg viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l1.5-3h15L21 7"/><path d="M3 7v13h18V7"/><path d="M3 7c0 1.7 1.3 3 3 3s3-1.3 3-3 1.3 3 3 3 3-1.3 3-3 1.3 3 3 3 3-1.3 3-3"/></svg></div><div><div class="name">Pazaryeri</div><div class="hex">#F97316 orange</div></div></div>
+  <div class="card"><div class="plate" style="background:#DCFCE7"><svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/><path d="M8 15h2M14 15h2M8 19h2"/></svg></div><div><div class="name">Etkinlikler</div><div class="hex">#22C55E green</div></div></div>
+  <div class="card"><div class="plate" style="background:#FCE7F3"><svg viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M15 19c0-2.5 2-4.5 4.5-4.5"/></svg></div><div><div class="name">Çal. arkadaşı</div><div class="hex">#EC4899 pink</div></div></div>
+</div>
+</body></html>
