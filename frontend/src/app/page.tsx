@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { getStoredUser, type AuthUser } from "@/lib/auth";
+import { getStoredUser, logout, type AuthUser } from "@/lib/auth";
 
 export default function Home() {
+  const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
@@ -15,6 +18,13 @@ export default function Home() {
     setHydrated(true);
   }, []);
 
+  function handleLogout() {
+    logout();
+    setUser(null);
+    toast.success("Çıkış yapıldı");
+    router.push("/");
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
       <h1 className="text-3xl font-semibold tracking-tight">Student Ecosystem</h1>
@@ -22,9 +32,7 @@ export default function Home() {
         Not, pazaryeri, etkinlik, arkadaş. Hepsi tek yerde.
       </p>
       {hydrated && user ? (
-        <Button asChild>
-          <Link href="/">Panele git</Link>
-        </Button>
+        <Button onClick={handleLogout}>Çıkış yap</Button>
       ) : (
         <div className="flex gap-3">
           <Button asChild>

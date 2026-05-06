@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -43,6 +44,7 @@ export default function RootLayout({
         className={`${inter.variable} ${jetbrainsMono.variable} ${geistSans.variable} ${geistMono.variable} font-sans`}
       >
         {children}
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );
