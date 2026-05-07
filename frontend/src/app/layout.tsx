@@ -33,13 +33,18 @@ export const metadata: Metadata = {
   description: "Notes, marketplace, events, and study buddy for university students.",
 };
 
+const themeInitScript = `(function(){try{var t=localStorage.getItem('student_eco.theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} ${geistSans.variable} ${geistMono.variable} font-sans`}
       >
