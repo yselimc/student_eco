@@ -68,6 +68,20 @@ export function logout(): void {
   clearStoredUser();
 }
 
+export function safeNextPath(raw: string | null | undefined): string {
+  if (!raw) return "/";
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(raw);
+  } catch {
+    return "/";
+  }
+  if (!decoded.startsWith("/")) return "/";
+  if (decoded.startsWith("//")) return "/";
+  if (decoded.startsWith("/\\")) return "/";
+  return decoded;
+}
+
 export async function register(payload: RegisterPayload): Promise<TokenResponse> {
   const result = await apiFetch<TokenResponse>("/auth/register", {
     method: "POST",

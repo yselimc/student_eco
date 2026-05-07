@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApiError } from "@/lib/api";
-import { login } from "@/lib/auth";
+import { login, safeNextPath } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,7 +31,8 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await login({ email, password });
-      router.push("/");
+      const params = new URLSearchParams(window.location.search);
+      router.push(safeNextPath(params.get("next")));
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
