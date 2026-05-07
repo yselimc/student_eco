@@ -9,7 +9,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.core.config import settings
 from app.core.exceptions import AppError
 from app.core.logging import configure_logging
-from app.routes import auth, health
+from app.routes import auth, health, notes
 
 configure_logging(settings.log_level)
 logger = logging.getLogger(__name__)
@@ -40,6 +40,7 @@ def create_app() -> FastAPI:
 
     application.include_router(health.router)
     application.include_router(auth.router)
+    application.include_router(notes.router)
 
     @application.exception_handler(AppError)
     async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
