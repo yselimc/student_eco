@@ -53,10 +53,14 @@ The `docs/` folder contains the full spec:
 ## Working Protocol
 
 1. **Confirm before building.** Before any non-trivial feature, summarize what you'll do and wait for approval. "Non-trivial" = anything beyond a single file edit or bug fix.
-2. **One logical change per commit.** Use Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`).
-3. **Test what you build.** For backend, hit the endpoint. For frontend, verify it renders. Don't claim "done" without verification.
-4. **Ask, don't assume.** If a requirement is ambiguous, ask. Don't invent business logic.
-5. **End-of-day ritual.** When I say "wrap up the day", give a summary of what was built, what was skipped, what's broken, and what's next.
+2. **Feature branch per feature.** Each feature gets its own `feature/<short-name>` branch off `main`. Build, commit, and push on the branch. When the feature is verified working, merge to `main`, push `main`, and delete the branch (locally and on remote). One feature = one branch.
+   - Trivial chores that aren't features (e.g., `docs:` tweaks, single-file `chore:` updates) can land directly on `main`.
+   - Branch naming: `feature/<kebab-case-name>` — e.g., `feature/navbar`, `feature/notes-upload`.
+   - Merge style: fast-forward when possible, otherwise `--no-ff` is fine. Don't squash unless asked.
+3. **One logical change per commit.** Use Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`).
+4. **Test what you build.** For backend, hit the endpoint. For frontend, verify it renders. Don't claim "done" without verification.
+5. **Ask, don't assume.** If a requirement is ambiguous, ask. Don't invent business logic.
+6. **End-of-day ritual.** When I say "wrap up the day", give a summary of what was built, what was skipped, what's broken, and what's next.
 
 ## Architecture Rules
 
