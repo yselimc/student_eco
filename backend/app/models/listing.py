@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
@@ -12,9 +15,12 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.listing_image import ListingImage
 
 
 class Listing(Base):
@@ -42,6 +48,13 @@ class Listing(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
+    )
+
+    images: Mapped[list[ListingImage]] = relationship(
+        "ListingImage",
+        back_populates="listing",
+        cascade="all, delete-orphan",
+        order_by="ListingImage.display_order",
     )
 
     __table_args__ = (
