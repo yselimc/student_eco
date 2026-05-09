@@ -12,6 +12,29 @@ A 4-module university student platform built as a graduation project:
 
 **Audience:** A graduation jury. Architecture and code quality matter, but a working demo matters more.
 
+## Session Resume Protocol
+
+If the user types `--resume`, `resume`, or `kaldığım yerden devam`:
+
+1. Read `STATE.md` immediately.
+2. Run: `git status`, `git log --oneline -5`, `git branch --show-current`.
+3. Cross-check `STATE.md` against actual git state. If they disagree, **trust git and flag the drift**.
+4. Summarize back to the user in 4-6 lines:
+   - Where we are (day, branch, last commit)
+   - What's next per `STATE.md`
+   - Any blockers or open questions
+   - Whether servers are likely up (don't auto-start them)
+5. Wait for user confirmation before doing anything destructive (commits, merges, branch deletes, file rewrites).
+
+**When to update `STATE.md`:**
+
+- At the start of each new logical step (commit, branch creation, major decision): append a "Recent Session Snapshot" entry.
+- Before usage limits hit (proactively, when a long output is likely to cut): write a snapshot now.
+- When the user says "kapatıyorum", "ara veriyorum", "günü bitir", "wrap up": write a final snapshot for the session.
+- When a feature merges to main: bump the day section, mark commits, add tech debt notes.
+
+**Never silently rewrite `STATE.md`.** Always show the diff or summary of what you're updating, especially if removing or contradicting prior content. The "Recent Session Snapshots" section is **append-only**.
+
 ## Project Structure
 
 The project lives in three top-level folders:
