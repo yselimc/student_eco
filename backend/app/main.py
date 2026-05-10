@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -9,7 +10,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.core.config import settings
 from app.core.exceptions import AppError
 from app.core.logging import configure_logging
-from app.routes import auth, health, listings, messages, notes
+from app.routes import auth, events, health, listings, messages, notes
 
 configure_logging(settings.log_level)
 logger = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ def create_app() -> FastAPI:
     application.include_router(notes.router)
     application.include_router(listings.router)
     application.include_router(messages.router)
+    application.include_router(events.router)
 
     @application.exception_handler(AppError)
     async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
@@ -65,11 +67,13 @@ def create_app() -> FastAPI:
     async def validation_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
         return JSONResponse(
             status_code=422,
-            content={
-                "detail": "Validation failed",
-                "code": "validation_failed",
-                "errors": exc.errors(),
-            },
+            content=jsonable_encoder(
+                {
+                    "detail": "Validation failed",
+                    "code": "validation_failed",
+                    "errors": exc.errors(),
+                }
+            ),
         )
 
     logger.info("Student Ecosystem API started in %s mode", settings.env)
