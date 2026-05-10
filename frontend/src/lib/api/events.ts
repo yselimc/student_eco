@@ -13,6 +13,7 @@ export type EventRead = {
   location: string | null;
   starts_at: string;
   ends_at: string | null;
+  max_attendees: number | null;
   attendee_count: number;
   created_at: string;
   updated_at: string;
@@ -39,6 +40,7 @@ export type EventCreateInput = {
   location?: string | null;
   starts_at: string;
   ends_at?: string | null;
+  max_attendees?: number | null;
 };
 
 export type Attendee = {

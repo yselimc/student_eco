@@ -9,6 +9,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     String,
     Text,
     func,
@@ -40,6 +41,7 @@ class Event(Base):
         DateTime(timezone=True), nullable=False, index=True
     )
     ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    max_attendees: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -65,6 +67,10 @@ class Event(Base):
         CheckConstraint(
             "ends_at IS NULL OR ends_at >= starts_at",
             name="ck_events_ends_after_starts",
+        ),
+        CheckConstraint(
+            "max_attendees IS NULL OR max_attendees >= 1",
+            name="ck_events_max_attendees_positive",
         ),
         Index("ix_events_category_starts_at", "category", "starts_at"),
     )

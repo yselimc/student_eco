@@ -27,6 +27,7 @@ export default function NewEventPage() {
   const [location, setLocation] = useState("");
   const [startsAtLocal, setStartsAtLocal] = useState("");
   const [endsAtLocal, setEndsAtLocal] = useState("");
+  const [maxAttendees, setMaxAttendees] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -60,6 +61,16 @@ export default function NewEventPage() {
       }
     }
 
+    let maxAttendeesValue: number | null = null;
+    if (maxAttendees.trim()) {
+      const parsed = Number(maxAttendees);
+      if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < 1) {
+        setSubmitError("Kontenjan en az 1 olmalı.");
+        return;
+      }
+      maxAttendeesValue = parsed;
+    }
+
     setSubmitting(true);
     try {
       const created = await createEvent({
@@ -69,6 +80,7 @@ export default function NewEventPage() {
         location: location.trim() || null,
         starts_at: startsUtc,
         ends_at: endsUtc,
+        max_attendees: maxAttendeesValue,
       });
       toast.success("Etkinlik yayınlandı");
       router.push(`/events/${created.id}`);
@@ -163,6 +175,23 @@ export default function NewEventPage() {
                 onChange={(e) => setEndsAtLocal(e.target.value)}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="max_attendees">Kontenjan (opsiyonel)</Label>
+            <Input
+              id="max_attendees"
+              type="number"
+              inputMode="numeric"
+              step={1}
+              min={1}
+              value={maxAttendees}
+              onChange={(e) => setMaxAttendees(e.target.value)}
+              placeholder="Sınırsız"
+            />
+            <p className="text-xs text-muted-foreground">
+              Boş bırakırsan herkes katılabilir.
+            </p>
           </div>
 
           <div className="space-y-2">

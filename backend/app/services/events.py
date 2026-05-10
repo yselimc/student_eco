@@ -23,6 +23,10 @@ from app.repositories.events import (
 from app.schemas.events import EVENT_CATEGORIES
 
 
+class EventFullError(ConflictError):
+    error_code = "event_full"
+
+
 class EventService:
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -67,11 +71,14 @@ class EventService:
         location: str | None,
         starts_at: datetime,
         ends_at: datetime | None,
+        max_attendees: int | None,
     ) -> EventWithMeta:
         if category not in EVENT_CATEGORIES:
             raise ValidationFailedError("Unknown category")
         if ends_at is not None and ends_at < starts_at:
             raise ValidationFailedError("'ends_at' must be on or after 'starts_at'")
+        if max_attendees is not None and max_attendees < 1:
+            raise ValidationFailedError("'max_attendees' must be at least 1")
 
         event = Event(
             organizer_id=organizer_id,
@@ -81,6 +88,7 @@ class EventService:
             location=location.strip() if location else None,
             starts_at=starts_at,
             ends_at=ends_at,
+            max_attendees=max_attendees,
         )
         self.db.add(event)
         self.db.commit()
@@ -102,6 +110,11 @@ class EventService:
         existing = self.events.get_attendance(event_id=event_id, user_id=user_id)
         if existing is not None:
             raise ConflictError("Already RSVPed to this event")
+        if (
+            item.event.max_attendees is not None
+            and item.attendee_count >= item.event.max_attendees
+        ):
+            raise EventFullError("Event is full")
         attendance = EventAttendee(event_id=event_id, user_id=user_id)
         self.db.add(attendance)
         try:

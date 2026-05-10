@@ -28,6 +28,7 @@ class EventRead(BaseModel):
     location: str | None
     starts_at: datetime
     ends_at: datetime | None
+    max_attendees: int | None
     attendee_count: int
     created_at: datetime
     updated_at: datetime
@@ -45,6 +46,7 @@ class EventCreate(BaseModel):
     location: str | None = Field(default=None, max_length=200)
     starts_at: datetime
     ends_at: datetime | None = None
+    max_attendees: int | None = Field(default=None, ge=1)
 
     @field_validator("title")
     @classmethod

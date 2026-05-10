@@ -31,6 +31,7 @@ def _to_read(item: EventWithMeta) -> EventRead:
         location=item.event.location,
         starts_at=item.event.starts_at,
         ends_at=item.event.ends_at,
+        max_attendees=item.event.max_attendees,
         attendee_count=item.attendee_count,
         created_at=item.event.created_at,
         updated_at=item.event.updated_at,
@@ -76,6 +77,7 @@ def create_event(
         location=payload.location,
         starts_at=payload.starts_at,
         ends_at=payload.ends_at,
+        max_attendees=payload.max_attendees,
     )
     return _to_read(item)
 

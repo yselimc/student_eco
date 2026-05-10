@@ -112,6 +112,16 @@ export default function EventDetailPage() {
   const isOrganizer = event && currentUserId === event.organizer_id;
   const isGoing = Boolean(currentUserId) && attendees.some((a) => a.user_id === currentUserId);
   const past = event ? isPastEvent(event.starts_at) : false;
+  const isFull =
+    event !== null &&
+    event.max_attendees !== null &&
+    event.attendee_count >= event.max_attendees;
+  const rsvpDisabled = rsvpBusy || past || !currentUserId || (isFull && !isGoing);
+  const rsvpDisabledReason = past
+    ? "Geçmiş etkinlik"
+    : isFull && !isGoing
+      ? "Dolu"
+      : null;
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
@@ -173,9 +183,9 @@ export default function EventDetailPage() {
               <div className="mt-6 flex flex-wrap items-center gap-2">
                 <Button
                   onClick={handleToggleRsvp}
-                  disabled={rsvpBusy || past || !currentUserId}
+                  disabled={rsvpDisabled}
                   variant={isGoing ? "secondary" : "default"}
-                  title={past ? "Geçmiş etkinliklere katılınamaz" : undefined}
+                  title={rsvpDisabledReason ?? undefined}
                 >
                   {isGoing ? <Check className="h-4 w-4" /> : null}
                   <span className={isGoing ? "ml-1.5" : undefined}>
@@ -183,7 +193,7 @@ export default function EventDetailPage() {
                       ? "Güncelleniyor..."
                       : isGoing
                         ? "Katılıyorum"
-                        : "Katıl"}
+                        : rsvpDisabledReason ?? "Katıl"}
                   </span>
                 </Button>
                 {isOrganizer ? (
@@ -205,14 +215,23 @@ export default function EventDetailPage() {
 
           <section className="space-y-4 lg:col-span-2">
             <div className="rounded-lg border border-border bg-card p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   Katılımcılar
                 </div>
-                <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                  {event.attendee_count}
-                </span>
+                <div className="flex items-center gap-2">
+                  {isFull ? (
+                    <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
+                      Dolu
+                    </span>
+                  ) : null}
+                  <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                    {event.max_attendees !== null
+                      ? `${event.attendee_count} / ${event.max_attendees}`
+                      : event.attendee_count}
+                  </span>
+                </div>
               </div>
               <div className="mt-3">
                 {attendees.length === 0 ? (
