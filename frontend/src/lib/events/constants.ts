@@ -85,3 +85,20 @@ export function formatTimeRange(startIso: string, endIso: string | null): string
 export function isPastEvent(iso: string, now: Date = new Date()): boolean {
   return new Date(iso).getTime() < now.getTime();
 }
+
+const TURKEY_OFFSET_HOURS = 3;
+
+export function turkeyLocalToUtcIso(local: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(local);
+  if (!match) return null;
+  const [, y, mo, d, h, mi, s] = match;
+  const ms = Date.UTC(
+    Number(y),
+    Number(mo) - 1,
+    Number(d),
+    Number(h) - TURKEY_OFFSET_HOURS,
+    Number(mi),
+    s ? Number(s) : 0,
+  );
+  return new Date(ms).toISOString();
+}

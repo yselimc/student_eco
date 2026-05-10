@@ -1,20 +1,27 @@
 import Link from "next/link";
 import { Users } from "lucide-react";
 
+import { PastEventBadge } from "@/components/events/past-event-badge";
 import {
   categoryLabel,
   dateBlockParts,
   formatTimeRange,
+  isPastEvent,
 } from "@/lib/events/constants";
 import type { EventRead } from "@/lib/api/events";
+import { cn } from "@/lib/utils";
 
 export function EventRow({ event }: { event: EventRead }) {
   const block = dateBlockParts(event.starts_at);
   const time = formatTimeRange(event.starts_at, event.ends_at);
+  const past = isPastEvent(event.starts_at);
   return (
     <Link
       href={`/events/${event.id}`}
-      className="group block rounded-lg border border-border bg-card p-4 transition-colors hover:border-[hsl(var(--events)/0.5)]"
+      className={cn(
+        "group block rounded-lg border border-border bg-card p-4 transition-colors hover:border-[hsl(var(--events)/0.5)]",
+        past && "opacity-70",
+      )}
     >
       <div className="flex items-start gap-4">
         <div className="flex h-[72px] w-16 flex-none flex-col items-center justify-center rounded-md border border-border bg-card">
@@ -30,6 +37,7 @@ export function EventRow({ event }: { event: EventRead }) {
             <span className="rounded-md bg-[hsl(var(--events)/0.12)] px-2 py-0.5 text-xs font-medium text-[hsl(var(--events))]">
               {categoryLabel(event.category)}
             </span>
+            {past ? <PastEventBadge /> : null}
             <span className="font-mono text-xs text-muted-foreground">
               {time}
               {event.location ? ` · ${event.location}` : ""}
