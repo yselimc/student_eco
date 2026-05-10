@@ -1,15 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { CalendarDays, List as ListIcon, Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EventRow } from "@/components/events/event-row";
 import { ApiError } from "@/lib/api";
 import { listEvents, type EventRead } from "@/lib/api/events";
+import { cn } from "@/lib/utils";
 import {
   EVENT_CATEGORY_OPTIONS,
   TIME_RANGE_OPTIONS,
@@ -17,10 +19,23 @@ import {
   type TimeRangeKey,
 } from "@/lib/events/constants";
 
+const EventCalendar = dynamic(
+  () => import("@/components/events/event-calendar").then((m) => m.EventCalendar),
+  { ssr: false, loading: () => <CalendarSkeleton /> },
+);
+
 const DEFAULT_RANGE: TimeRangeKey = "all";
+
+type ViewMode = "list" | "calendar";
+const DEFAULT_VIEW: ViewMode = "list";
+const VIEW_STORAGE_KEY = "student_eco.events.view";
 
 function isTimeRangeKey(value: string): value is TimeRangeKey {
   return TIME_RANGE_OPTIONS.some((o) => o.key === value);
+}
+
+function isViewMode(value: string | null): value is ViewMode {
+  return value === "list" || value === "calendar";
 }
 
 export default function EventsPage() {
@@ -38,6 +53,17 @@ export default function EventsPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<ViewMode>(DEFAULT_VIEW);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(VIEW_STORAGE_KEY);
+    if (isViewMode(stored)) setView(stored);
+  }, []);
+
+  function selectView(next: ViewMode) {
+    setView(next);
+    window.localStorage.setItem(VIEW_STORAGE_KEY, next);
+  }
 
   useEffect(() => {
     setSearchInput(qParam);
@@ -149,13 +175,51 @@ export default function EventsPage() {
             </option>
           ))}
         </select>
+        <div
+          role="tablist"
+          aria-label="Görünüm"
+          className="flex flex-none items-center rounded-md border border-input bg-background p-0.5 text-sm"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === "list"}
+            onClick={() => selectView("list")}
+            className={cn(
+              "flex h-9 items-center gap-1.5 rounded px-3 transition-colors",
+              view === "list"
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <ListIcon className="h-4 w-4" />
+            Liste
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === "calendar"}
+            onClick={() => selectView("calendar")}
+            className={cn(
+              "flex h-9 items-center gap-1.5 rounded px-3 transition-colors",
+              view === "calendar"
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <CalendarDays className="h-4 w-4" />
+            Takvim
+          </button>
+        </div>
       </div>
 
       <div className="mt-6">
         {loading ? (
-          <ListSkeleton />
+          view === "calendar" ? <CalendarSkeleton /> : <ListSkeleton />
         ) : error ? (
           <ErrorState message={error} />
+        ) : view === "calendar" ? (
+          <EventCalendar events={events} />
         ) : events.length === 0 ? (
           <EmptyState hasFilters={hasFilters} />
         ) : (
@@ -170,6 +234,14 @@ export default function EventsPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function CalendarSkeleton() {
+  return (
+    <div className="rounded-lg border border-border bg-card p-4" aria-busy>
+      <div className="h-[640px] animate-pulse rounded-md bg-muted/50" />
+    </div>
   );
 }
 
