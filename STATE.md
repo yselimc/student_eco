@@ -4,17 +4,18 @@
 
 ## Current Position
 
-- **Day:** 3 of 6 — Marketplace + messaging module
+- **Day:** 5 of 6 — module TBD at kickoff
 - **Active branch:** `main`
-- **Last commit:** `4d27b76` chore: rename Claude.md to CLAUDE.md
-- **Next step:** Day 3 wrap-up. Day 4 (Events module) starts on the next session — branch `feature/events`.
-- **Blockers:** None. Awaiting Day 4 kickoff.
+- **Last commit:** `c0e01a3` Merge pull request #3 from yselimc/feature/events
+- **Next step:** Day 5. Original roadmap puts Study Buddy on Day 3 afternoon and Polish on Day 5. Our timeline has shifted: Marketplace + Messaging compressed into our Day 3, Events into our Day 4, so Day 5 has two reasonable framings — (a) Study Buddy module on `feature/buddies`, then Polish on Day 6, or (b) Skip Buddy and go to Polish since the four-module spec is already largely demoable. Decide at kickoff.
+- **Blockers:** None.
 
 ## Services
 
-- Backend: stopped (uvicorn killed at end of last session)
-- Frontend: stopped (`npm run dev` killed at end of last session)
-- Postgres: assumed running on `:5432` (system service, not stopped explicitly)
+- Backend: running on `:8000` (uvicorn, foreground was killed earlier this session and restarted; still up at session close)
+- Frontend: running on `:3000` (`npm run dev`, still up at session close)
+- Postgres: running on `:5432` (system service)
+- If the user wants a clean stop before next session: `pkill -f "uvicorn app.main"` and Ctrl-C the next-dev terminal, or just leave them running.
 
 ## Day Progress
 
@@ -57,13 +58,22 @@
   - `CLAUDE.md` line 32 says `pnpm` but project actually uses `npm` (has `package-lock.json`) — fix wording
   - `backend/uv.lock` untracked since Day 1 — decide whether to track or `.gitignore` [Day 5 polish]
 
-### Day 4 — Events 🔜
+### Day 4 — Events ✅
 
-Not started. Plan TBD at Day 4 kickoff.
+- 7 commits in `feature/events` branch, merged via PR #3 (`c0e01a3`):
+  - `1f0de9f` feat(backend): events + event_attendees models + migration (E1)
+  - `bee689d` fix(backend): make validation_handler serialize Pydantic ctx (surfaced during E2 smoke testing)
+  - `70f57c2` feat(backend): events CRUD + RSVP routes (E2)
+  - `1c7b444` feat(frontend): events API client + list page (E3)
+  - `6be36d5` feat(frontend): events calendar view toggle (E4)
+  - `fa70d17` feat(frontend): event detail + RSVP + new form + past-event badge (E5)
+  - `5fa4144` feat: event capacity with max_attendees limit (E6)
+- New deps: `react-big-calendar@^1.19`, `date-fns@^3.6`, `@types/react-big-calendar`
+- Tech-debt notes added this day (see Open Tech Debt for full list)
 
-### Day 5 — Study Buddy 🔜
+### Day 5 — TBD 🔜
 
-Not started.
+Not started. Plan at kickoff (see Current Position for the Buddy-vs-Polish framing).
 
 ### Day 6 — Polish + Demo 🔜
 
@@ -77,6 +87,9 @@ Not started.
 - **No navbar links to feature pages** [Day 3] — `/messages`, `/marketplace`, `/notes` only reachable by direct URL or after first action. Polish in Day 4 or 5.
 - **`CLAUDE.md` line 32 says `pnpm`** [Day 3] — project actually uses `npm`. Fix wording in next chore commit.
 - **`backend/uv.lock` untracked** [Day 1, surfaced Day 3] — decide tracked-or-ignored. [Day 5 polish]
+- **Events doc deviations from `docs/03-database-schema.md` and `docs/04-api-spec.md`** [Day 4] — schema doc lists `career` not `culture`; doesn't enforce category enum at DB level (we added a CHECK); attendee shape doc says `{user_id, full_name, department}` but we return `{user_id, display_name, rsvp_at}` (User model has `display_name`, no `department` column); spec lists `PATCH /events/{id}` we didn't implement (no edit for v1); neither doc mentions `max_attendees`. Reconcile in Day 5/6 doc-polish pass.
+- **npm audit warnings from `react-big-calendar` transitive deps** [Day 4] — 5 vulnerabilities reported (1 moderate, 4 high) at install. Not blocking the demo; assess severity and decide patch-or-accept on Day 5.
+- **`validation_handler` `ctx.error` serializes as `{}`** [Day 4] — the `bee689d` fix uses `jsonable_encoder` which coerces non-JSON values to empty dicts. Field error message still carries the human-readable text via the `msg` field; the `ctx` is just lossy. Acceptable; flag if a future error path needs richer ctx.
 
 ## Decisions Log
 
@@ -96,6 +109,15 @@ Short bullets of "we chose X over Y because Z" — for context recovery.
 12. **Listing creation transactionality** — pre-allocate `uuid4()`, flush listing row, save each image (per-file cleanup in `save_image` on error), on outer exception rollback DB + `shutil.rmtree(listing_dir, ignore_errors=True)`.
 13. **Project uses `npm`, not `pnpm`** — has `package-lock.json`. `CLAUDE.md` line 32 lists `pnpm` but that's stale; project conventions follow `npm run dev`.
 14. **PR-based workflow adopted from Day 2 onwards** — Day 1 used direct `main` pushes per the early-scaffolding exception in `CLAUDE.md`. From Day 2 every feature gets its own `feature/<name>` branch and merges via GitHub PR UI.
+15. **Calendar library: `react-big-calendar` over `fullcalendar`** — ~100KB vs 250KB+, native React (no imperative wrapper), Month-view-only is enough; we don't need drag-drop, recurring events, Google sync, or resource scheduling.
+16. **Events list defaults to `range=all`** — past events stay visible per the v1 spec ("past events visible but RSVP disabled"). The "Bu hafta" / "Bu ay" / "Tümü" dropdown is opt-in.
+17. **List view is the default on `/events`; calendar is opt-in via toggle** — mobile-first; calendar is decision-fatigue material on small screens.
+18. **View choice persists in localStorage under `student_eco.events.view`** — toggle "sticks" across visits without polluting the URL or requiring a backend pref.
+19. **Asia/Istanbul treated as fixed UTC+3** — Turkey doesn't observe DST since 2016. `turkeyLocalToUtcIso` does pure-string parsing + `Date.UTC` so the conversion doesn't depend on the user's machine timezone (which would silently break the demo for non-Turkey clocks).
+20. **Capacity overrun by 1 is acceptable for v1** — `rsvp` does a check-then-insert without `SELECT FOR UPDATE`; race between count-check and insert can let one extra slot slip in under high concurrency. Unique constraint on `(event_id, user_id)` still prevents double-booking. Hardening to `SELECT FOR UPDATE` is post-demo.
+21. **`EventFullError(ConflictError)` with `error_code='event_full'`** — frontend distinguishes "you already RSVPed" (409 `conflict`) from "event is full" (409 `event_full`) without parsing message text. Domain error subclass lives in `services/events.py` to keep `core/exceptions.py` domain-free.
+22. **No edit endpoint for events in v1** — delete + recreate is the supported flow. Capacity is set at creation time only; later changes are out of scope.
+23. **`events` table has CHECK constraints at the DB level** — category enum + `ends_at >= starts_at` + `max_attendees IS NULL OR max_attendees >= 1`. Defense in depth on top of Pydantic validation; protects against direct SQL writes (e.g., the upcoming seed script).
 
 ## Recent Session Snapshots
 
@@ -104,3 +126,13 @@ Short bullets of "we chose X over Y because Z" — for context recovery.
 - **Done this session:** Built C7 (frontend messages inbox + per-listing thread + orphan thread, with 5 s polling, visibilitychange pause, beforeunload defensive backup, manual "Yenile" inbox refresh, auto-scroll only on new messages). Merged `feature/marketplace` via PR #2 (regular merge, all 7 commits preserved). Deleted local + remote feature branch. Renamed `Claude.md` → `CLAUDE.md`. Installed this session-resume system (CLAUDE.md "Session Resume Protocol" section + STATE.md).
 - **Next:** Day 4 — Events module. Plan TBD at kickoff. Servers stopped; user must restart manually.
 - **Unresolved:** None tracking. The "no navbar links to feature pages" debt could be cleaned up early in Day 4 if it bothers the user during Events nav design.
+
+### 2026-05-10 — Day 4 wrap-up; events module shipped
+
+- **Done this session:** Built and merged `feature/events` (PR #3, 7 commits). E1 = events + event_attendees models + migration. E2 = CRUD + RSVP routes (smoke-tested end-to-end: register → create → list → RSVP → 409 dup → cancel → 404 cancel-again → delete → cascade). Surfaced and fixed a latent JSON-serialization bug in `validation_handler` (commit `bee689d`) — affected all 422 responses app-wide, not just events. E3 = frontend API client + list page (URL-driven filters). E4 = react-big-calendar Month view with toggle, persisted in localStorage, default list. E5 = detail page (parallel event+attendees fetch, RSVP toggle, organizer-only delete, past-event badge), new-event form (datetime-local treated as Asia/Istanbul fixed UTC+3 and converted to UTC ISO). E6 = capacity (`max_attendees` nullable column, CHECK >= 1, `EventFullError` with `error_code='event_full'`, "Dolu" pill on detail, RSVP-disabled when full and not already attending; past wins over Dolu in disabled label). All six 3-account capacity scenarios verified in browser by user.
+- **Next:** Day 5 kickoff. See Current Position for the Buddy-vs-Polish framing — original roadmap put Buddy on Day 3 afternoon and Polish on Day 5; our compressed schedule means Day 5 could be either.
+- **Unresolved:**
+  - npm audit warnings from rbc transitive deps (5 vulnerabilities) — assess and patch-or-accept on Day 5
+  - Events docs (`03-database-schema.md`, `04-api-spec.md`) drift from implementation in several places (category set, attendee shape, no PATCH, no `max_attendees`) — Day 5 doc-polish
+  - Servers (backend `:8000`, frontend `:3000`) left running at session close
+  - Day 3 tech debt items (navbar links, `pnpm` typo, `uv.lock` decision) all still open — bundle into Day 5 polish per user's earlier call
