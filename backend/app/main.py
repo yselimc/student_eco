@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -65,11 +66,13 @@ def create_app() -> FastAPI:
     async def validation_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
         return JSONResponse(
             status_code=422,
-            content={
-                "detail": "Validation failed",
-                "code": "validation_failed",
-                "errors": exc.errors(),
-            },
+            content=jsonable_encoder(
+                {
+                    "detail": "Validation failed",
+                    "code": "validation_failed",
+                    "errors": exc.errors(),
+                }
+            ),
         )
 
     logger.info("Student Ecosystem API started in %s mode", settings.env)
