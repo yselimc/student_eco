@@ -1,10 +1,12 @@
 import logging
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.config import settings
@@ -47,6 +49,14 @@ def create_app() -> FastAPI:
     application.include_router(messages.router)
     application.include_router(events.router)
     application.include_router(buddies.router)
+
+    avatars_dir = Path(settings.upload_dir) / "avatars"
+    avatars_dir.mkdir(parents=True, exist_ok=True)
+    application.mount(
+        "/uploads/avatars",
+        StaticFiles(directory=str(avatars_dir)),
+        name="avatars",
+    )
 
     @application.exception_handler(AppError)
     async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
