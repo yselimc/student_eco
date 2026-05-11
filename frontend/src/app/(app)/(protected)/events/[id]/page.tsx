@@ -254,7 +254,12 @@ export default function EventDetailPage() {
                         >
                           {a.display_name.slice(0, 1).toUpperCase()}
                         </span>
-                        <span className="truncate">{a.display_name}</span>
+                        <Link
+                          href={`/profile/${a.user_id}`}
+                          className="truncate hover:underline"
+                        >
+                          {a.display_name}
+                        </Link>
                       </li>
                     ))}
                   </ul>
@@ -266,7 +271,14 @@ export default function EventDetailPage() {
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
                 Organizatör
               </div>
-              <div className="mt-1 font-semibold">{event.organizer_name}</div>
+              <div className="mt-1 font-semibold">
+                <Link
+                  href={`/profile/${event.organizer_id}`}
+                  className="hover:underline"
+                >
+                  {event.organizer_name}
+                </Link>
+              </div>
             </div>
           </section>
         </div>

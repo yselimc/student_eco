@@ -116,7 +116,12 @@ export default function NoteDetailPage() {
                     {note.semester}
                   </span>
                   <span aria-hidden className="text-muted-foreground/60">·</span>
-                  <span>{note.author_name}</span>
+                  <Link
+                    href={`/profile/${note.user_id}`}
+                    className="hover:text-foreground hover:underline"
+                  >
+                    {note.author_name}
+                  </Link>
                 </div>
               </div>
             </div>

@@ -258,7 +258,12 @@ export default function ListingDetailPage() {
                 Satıcı
               </div>
               <div className="mt-1 font-semibold text-foreground">
-                {listing.seller_name}
+                <Link
+                  href={`/profile/${listing.seller_id}`}
+                  className="hover:underline"
+                >
+                  {listing.seller_name}
+                </Link>
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
                 {formatDateTr(listing.created_at)} tarihinde yayınlandı
