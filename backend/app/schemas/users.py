@@ -41,6 +41,7 @@ class PublicProfileRead(BaseModel):
     display_name: str
     university: str | None
     department: str | None
+    avatar_url: str | None
     created_at: datetime
     notes_count: int
     listings_count: int
