@@ -13,6 +13,7 @@ from app.schemas.listings import (
     ListingStatusUpdate,
 )
 from app.services.listings import ListingService
+from app.storage.uploaders import avatar_url_from_path
 
 router = APIRouter(prefix="/listings", tags=["listings"])
 
@@ -22,6 +23,7 @@ def _to_read(item: ListingWithMeta) -> ListingRead:
         id=item.listing.id,
         seller_id=item.listing.seller_id,
         seller_name=item.seller_name,
+        seller_avatar_url=avatar_url_from_path(item.seller_avatar_path),
         title=item.listing.title,
         description=item.listing.description,
         price=item.listing.price,

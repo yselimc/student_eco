@@ -22,6 +22,7 @@ class EventRead(BaseModel):
     id: UUID
     organizer_id: UUID
     organizer_name: str
+    organizer_avatar_url: str | None
     title: str
     description: str | None
     category: EventCategory
@@ -60,6 +61,7 @@ class EventCreate(BaseModel):
 class AttendeeRead(BaseModel):
     user_id: UUID
     display_name: str
+    avatar_url: str | None
     rsvp_at: datetime
 
 

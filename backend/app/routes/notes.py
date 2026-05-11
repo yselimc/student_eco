@@ -8,6 +8,7 @@ from app.core.deps import CurrentUserId, DbSession
 from app.repositories.notes import NoteListItem
 from app.schemas.notes import NoteListResponse, NoteRead
 from app.services.notes import NoteService
+from app.storage.uploaders import avatar_url_from_path
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 
@@ -17,6 +18,7 @@ def _to_read(item: NoteListItem) -> NoteRead:
         id=item.note.id,
         user_id=item.note.user_id,
         author_name=item.author_name,
+        author_avatar_url=avatar_url_from_path(item.author_avatar_path),
         title=item.note.title,
         description=item.note.description,
         course_code=item.note.course_code,

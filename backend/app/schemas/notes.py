@@ -10,6 +10,7 @@ class NoteRead(BaseModel):
     id: UUID
     user_id: UUID
     author_name: str
+    author_avatar_url: str | None
     title: str
     description: str | None
     course_code: str

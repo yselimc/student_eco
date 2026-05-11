@@ -16,6 +16,7 @@ from app.models.user import User
 class EventWithMeta:
     event: Event
     organizer_name: str
+    organizer_avatar_path: str | None
     attendee_count: int
 
 
@@ -29,6 +30,7 @@ class EventListResult:
 class AttendeeRow:
     user_id: UUID
     display_name: str
+    avatar_path: str | None
     rsvp_at: datetime
 
 
@@ -74,6 +76,7 @@ class EventRepository:
             select(
                 Event,
                 User.display_name,
+                User.avatar_path,
                 func.coalesce(attendee_count_subq.c.attendee_count, 0),
             )
             .join(User, User.id == Event.organizer_id)
@@ -89,7 +92,12 @@ class EventRepository:
 
         rows = self.db.execute(stmt).all()
         items = [
-            EventWithMeta(event=row[0], organizer_name=row[1], attendee_count=row[2])
+            EventWithMeta(
+                event=row[0],
+                organizer_name=row[1],
+                organizer_avatar_path=row[2],
+                attendee_count=row[3],
+            )
             for row in rows
         ]
         return EventListResult(items=items, total=total)
@@ -108,6 +116,7 @@ class EventRepository:
             select(
                 Event,
                 User.display_name,
+                User.avatar_path,
                 func.coalesce(attendee_count_subq.c.attendee_count, 0),
             )
             .join(User, User.id == Event.organizer_id)
@@ -118,7 +127,12 @@ class EventRepository:
         ).first()
         if row is None:
             return None
-        return EventWithMeta(event=row[0], organizer_name=row[1], attendee_count=row[2])
+        return EventWithMeta(
+            event=row[0],
+            organizer_name=row[1],
+            organizer_avatar_path=row[2],
+            attendee_count=row[3],
+        )
 
     def get_attendance(
         self, *, event_id: UUID, user_id: UUID
@@ -132,11 +146,17 @@ class EventRepository:
 
     def list_attendees(self, *, event_id: UUID) -> list[AttendeeRow]:
         rows = self.db.execute(
-            select(EventAttendee.user_id, User.display_name, EventAttendee.created_at)
+            select(
+                EventAttendee.user_id,
+                User.display_name,
+                User.avatar_path,
+                EventAttendee.created_at,
+            )
             .join(User, User.id == EventAttendee.user_id)
             .where(EventAttendee.event_id == event_id)
             .order_by(EventAttendee.created_at.asc())
         ).all()
         return [
-            AttendeeRow(user_id=r[0], display_name=r[1], rsvp_at=r[2]) for r in rows
+            AttendeeRow(user_id=r[0], display_name=r[1], avatar_path=r[2], rsvp_at=r[3])
+            for r in rows
         ]
