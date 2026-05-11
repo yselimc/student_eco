@@ -136,3 +136,9 @@ Short bullets of "we chose X over Y because Z" — for context recovery.
   - Events docs (`03-database-schema.md`, `04-api-spec.md`) drift from implementation in several places (category set, attendee shape, no PATCH, no `max_attendees`) — Day 5 doc-polish
   - Servers (backend `:8000`, frontend `:3000`) left running at session close
   - Day 3 tech debt items (navbar links, `pnpm` typo, `uv.lock` decision) all still open — bundle into Day 5 polish per user's earlier call
+
+### 2026-05-11 — Day 5 Phase 2: navbar feature links
+
+- **Done this session:** Merged `feature/navbar-links` (PR #5, 1 commit `5533e9a`). Navbar now exposes 5 module links (Notlar / Marketplace / Etkinlikler / Buddy / Mesajlar) on desktop (between logo and right-side actions) and inside the existing mobile hamburger sheet. Active route gets `bg-accent` + `font-medium` + `aria-current="page"`; `isActiveLink` uses prefix match so `/events/123` keeps "Etkinlikler" highlighted. New "Profilim" dropdown item between user header and "Çıkış yap" → `/profile/me` (404 until Phase 3). Links + Profilim gated to `hydrated && user`, matching the existing avatar-dropdown gating so guests still only see Giriş / Kaydol. (Context: Phase 1 — `feature/buddy` study-buddy module — was merged earlier today as PR #4; full Day 5 wrap-up entry deferred to Phase 6 per the kickoff plan.)
+- **Next:** Phase 3 — profile pages. Backend: `PATCH /auth/me` (display_name/university/department), `GET /users/{user_id}/profile` (public DTO with counts). Frontend: `/profile/me` (view + edit), `/profile/[userId]` (public), wire seller/uploader/organizer name links. Pausing for kickoff approval.
+- **Unresolved:** Day 3 "No navbar links to feature pages" tech-debt item is now closed by this PR — Open Tech Debt list still shows it; cleanup happens in Phase 5 (`chore/tech-debt-cleanup`) along with the other Day 3 debts. Other open items unchanged.
