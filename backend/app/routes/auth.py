@@ -2,7 +2,9 @@ from fastapi import APIRouter
 
 from app.core.deps import CurrentUserId, DbSession
 from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserOut
+from app.schemas.users import UserMeUpdate
 from app.services.auth import AuthService
+from app.services.users import UserService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -22,4 +24,10 @@ def login(payload: LoginRequest, db: DbSession) -> TokenResponse:
 @router.get("/me", response_model=UserOut)
 def me(user_id: CurrentUserId, db: DbSession) -> UserOut:
     user = AuthService(db).get_user(user_id)
+    return UserOut.model_validate(user)
+
+
+@router.patch("/me", response_model=UserOut)
+def update_me(payload: UserMeUpdate, user_id: CurrentUserId, db: DbSession) -> UserOut:
+    user = UserService(db).update_me(user_id, payload)
     return UserOut.model_validate(user)

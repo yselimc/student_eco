@@ -10,7 +10,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.core.config import settings
 from app.core.exceptions import AppError
 from app.core.logging import configure_logging
-from app.routes import auth, buddies, events, health, listings, messages, notes
+from app.routes import auth, buddies, events, health, listings, messages, notes, users
 
 configure_logging(settings.log_level)
 logger = logging.getLogger(__name__)
@@ -41,6 +41,7 @@ def create_app() -> FastAPI:
 
     application.include_router(health.router)
     application.include_router(auth.router)
+    application.include_router(users.router)
     application.include_router(notes.router)
     application.include_router(listings.router)
     application.include_router(messages.router)

@@ -21,7 +21,10 @@ class UserOut(BaseModel):
     id: UUID
     email: EmailStr
     display_name: str
+    university: str | None
+    department: str | None
     created_at: datetime
+    updated_at: datetime
 
 
 class TokenResponse(BaseModel):
