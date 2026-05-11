@@ -4,10 +4,10 @@
 
 ## Current Position
 
-- **Day:** 5 of 6 — Phases 1-3 shipped; Phase 4 TBD at kickoff
+- **Day:** 5 of 6 — Phases 1-4 shipped; Phase 5 (`chore/tech-debt-cleanup`) is next
 - **Active branch:** `main`
-- **Last commit:** `13d570a` Merge pull request #6 from yselimc/feature/profile
-- **Next step:** Day 5 Phase 4 — topic TBD at kickoff. Remaining sequenced phases per the in-flight plan: Phase 5 = `chore/tech-debt-cleanup` (Day 3 items: navbar typo, `uv.lock` decision, npm-audit, Day 4 events doc drift), Phase 6 = Day 5 wrap-up + Day 6 polish kickoff.
+- **Last commit:** `8f6c5ee` Merge pull request #7 from yselimc/feature/home-content
+- **Next step:** Day 5 Phase 5 = `chore/tech-debt-cleanup` (Day 3 items: `pnpm`→`npm` in CLAUDE.md, `uv.lock` tracking decision, npm-audit triage, Day 4 events docs reconciliation). Phase 6 = Day 5 wrap-up + Day 6 polish kickoff.
 - **Blockers:** None.
 
 ## Services
@@ -86,7 +86,10 @@
   - `70ef18c` feat(backend): include avatar_url on listing/note/event/attendee DTOs
   - `4acb0a6` feat(frontend): Avatar component + upload UI on /profile/me
   - `eeb3d4b` feat(frontend): avatars on public profile, navbar, and detail pages
-- Phases 4-6 not yet started.
+- Phase 4 — Home page content merged via PR #7 (`8f6c5ee`, 2 commits):
+  - `d47f655` feat(backend): add ?mine=1 filter to GET /events
+  - `fc3677e` feat(frontend): authenticated home page content
+- Phases 5-6 not yet started.
 
 ### Day 6 — Polish + Demo 🔜
 
@@ -136,6 +139,9 @@ Short bullets of "we chose X over Y because Z" — for context recovery.
 26. **/uploads/avatars/\* is public StaticFiles, not auth-gated** — overrides the `listings/` and `notes/` pattern. Reason: avatars are inherently public once shown on a `/profile/{userId}` page; auth-gating adds friction (custom `<AuthImage />` wrapper, blob URL lifecycle) without privacy benefit. Notes and listing images stay auth-gated because they have real privacy expectations.
 27. **Avatar filename = `{uuid4().hex}.{ext}`, not `{user_id}.{ext}`** — each upload gets a fresh URL. Old file deleted on replace inside `set_avatar`. Cache-busting is free; no `?v=timestamp` query param needed. DB stores only the relative path `avatars/<uuid>.<ext>`; `avatar_url_from_path()` prepends `/uploads/`.
 28. **Avatar surfaces: detail pages + navbar only, no list cards** — `ListingCard`, `NoteCard`, `EventRow` all wrap their content in a single outer `<Link>`. Adding a nested `<Link>` for the avatar/name would invalidate the HTML; pulling out the outer Link in favor of `onClick` is a bigger refactor than the demo needs. Avatars live on the 4 detail pages (marketplace, notes, events) + navbar dropdown/mobile sheet + both profile pages.
+29. **Home page data-fetching: 4 parallel client-side fetches over a `/home/feed` aggregate** — parallel `Promise.all` saves nothing meaningful vs a single aggregate (max of fetches, not sum), reuses existing endpoints, gives each section its own loading/empty/error state, and matches the rest of the app. Aggregate endpoint was rejected because it's purpose-built, hard to reuse, and grows with every new home widget.
+30. **`?mine=1` query param on `GET /events`** — picked over two new endpoints (`/events/organized` + `/events/attending`). One-line OR filter (`organizer_id = me OR id IN (event_attendees WHERE user_id = me)`); reusable for any future "My events" UI; default behavior unchanged when omitted. Combines with the existing `from`/`to`/`category`/`q`/`limit`/`offset` filters.
+31. **Home page route: branch inside `(app)/page.tsx` on `hydrated && user`, not a separate authed route** — guest landing CTAs and authed dashboard both live at `/`. SSR returns a thin shell; the client picks the view after reading localStorage. Avoids redirect loops and matches how the navbar already gates on auth state.
 
 ## Recent Session Snapshots
 
@@ -154,6 +160,15 @@ Short bullets of "we chose X over Y because Z" — for context recovery.
   - Events docs (`03-database-schema.md`, `04-api-spec.md`) drift from implementation in several places (category set, attendee shape, no PATCH, no `max_attendees`) — Day 5 doc-polish
   - Servers (backend `:8000`, frontend `:3000`) left running at session close
   - Day 3 tech debt items (navbar links, `pnpm` typo, `uv.lock` decision) all still open — bundle into Day 5 polish per user's earlier call
+
+### 2026-05-11 — Day 5 Phase 4: home page content
+
+- **Done this session:** Merged `feature/home-content` via PR #7 (`8f6c5ee`, 2 commits). Backend `d47f655` added `?mine=1` filter to `GET /events` — OR'd organizer + attendee, combines with the existing filters, default behavior unchanged when omitted. Frontend `fc3677e` rewrote `(app)/page.tsx` to branch on `hydrated && user`: guest sees the existing CTAs unchanged, authenticated user sees welcome banner (avatar + display_name), 4 quick-access cards (Notlar / Marketplace / Etkinlikler / Buddy with tinted icons), and "Son aktivite" with three parallel `Promise.all` fetches (last 3 notes, last 3 active listings, next upcoming `mine=1` event with `from=now&limit=1`). Each block carries its own loading/empty/error state. Backend smoke-tested via curl (mine=1 transitions through 0 → 1 organized → 2 organized+attended; from filter composes; 401 unauth). Frontend tsc + eslint clean; `/` serves 200.
+- **Next:** Day 5 Phase 5 = `chore/tech-debt-cleanup` — kickoff pending. Scope per Open Tech Debt + the original Phase 5 plan: CLAUDE.md `pnpm` → `npm`, `backend/uv.lock` tracking decision, npm-audit triage on `react-big-calendar` transitive deps, Day 4 events docs reconciliation (`docs/03-database-schema.md` §2.5 + `docs/04-api-spec.md` §6).
+- **Unresolved:**
+  - Backend running on `:8000` (uvicorn, foreground, no `--reload`), frontend on `:3000` (`npm run dev`) at session close.
+  - Day 3 navbar-links debt item still listed even though closed by Phase 2 — Phase 5 will retire it.
+  - Avatar feature notes for docs: docs/04-api-spec.md needs the new `POST/DELETE /auth/me/avatar` endpoints and `avatar_url` fields documented; could fold into Phase 5's docs pass if not too much.
 
 ### 2026-05-11 — Day 5 Phase 3: profile pages + avatar feature
 
