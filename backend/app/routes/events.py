@@ -43,11 +43,12 @@ def _to_read(item: EventWithMeta) -> EventRead:
 @router.get("", response_model=EventListResponse)
 def list_events(
     db: DbSession,
-    _user_id: CurrentUserId,
+    user_id: CurrentUserId,
     category: Annotated[str | None, Query()] = None,
     from_: Annotated[datetime | None, Query(alias="from")] = None,
     to: Annotated[datetime | None, Query()] = None,
     q: Annotated[str | None, Query()] = None,
+    mine: Annotated[bool, Query()] = False,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> EventListResponse:
@@ -56,6 +57,7 @@ def list_events(
         from_dt=from_,
         to_dt=to,
         q=q,
+        mine_user_id=user_id if mine else None,
         limit=limit,
         offset=offset,
     )

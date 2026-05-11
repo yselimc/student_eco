@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.event import Event
@@ -45,6 +45,7 @@ class EventRepository:
         from_dt: datetime | None,
         to_dt: datetime | None,
         q: str | None,
+        mine_user_id: UUID | None,
         limit: int,
         offset: int,
     ) -> EventListResult:
@@ -57,6 +58,18 @@ class EventRepository:
             filters.append(Event.starts_at <= to_dt)
         if q:
             filters.append(Event.title.ilike(f"%{q}%"))
+        if mine_user_id is not None:
+            attended_subq = (
+                select(EventAttendee.event_id)
+                .where(EventAttendee.user_id == mine_user_id)
+                .scalar_subquery()
+            )
+            filters.append(
+                or_(
+                    Event.organizer_id == mine_user_id,
+                    Event.id.in_(attended_subq),
+                )
+            )
 
         count_stmt = select(func.count()).select_from(Event)
         if filters:
