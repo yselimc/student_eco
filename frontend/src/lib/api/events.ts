@@ -30,6 +30,7 @@ export type EventFilters = {
   from?: string;
   to?: string;
   q?: string;
+  mine?: boolean;
   limit?: number;
   offset?: number;
 };
@@ -68,6 +69,7 @@ function buildQuery(f: EventFilters): string {
   if (f.from) params.set("from", f.from);
   if (f.to) params.set("to", f.to);
   if (f.q) params.set("q", f.q);
+  if (f.mine) params.set("mine", "1");
   if (f.limit !== undefined) params.set("limit", String(f.limit));
   if (f.offset !== undefined) params.set("offset", String(f.offset));
   const query = params.toString();
