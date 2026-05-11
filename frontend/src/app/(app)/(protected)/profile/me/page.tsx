@@ -1,15 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { ArrowLeft, ExternalLink, Save } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, ExternalLink, Save, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApiError } from "@/lib/api";
-import { fetchMe, updateMe, type AuthUser } from "@/lib/auth";
+import {
+  deleteAvatar,
+  fetchMe,
+  updateMe,
+  uploadAvatar,
+  type AuthUser,
+} from "@/lib/auth";
+
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+const AVATAR_MIME_TYPES = ["image/jpeg", "image/png"];
 
 type FormState = {
   displayName: string;
@@ -31,6 +41,8 @@ export default function MyProfilePage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -106,6 +118,55 @@ export default function MyProfilePage() {
     }
   }
 
+  async function handleAvatarPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!AVATAR_MIME_TYPES.includes(file.type)) {
+      toast.error("Sadece JPG veya PNG yükleyebilirsin.");
+      return;
+    }
+    if (file.size > AVATAR_MAX_BYTES) {
+      toast.error("Dosya 2 MB'ı geçemez.");
+      return;
+    }
+    setAvatarBusy(true);
+    try {
+      const updated = await uploadAvatar(file);
+      setUser(updated);
+      toast.success("Profil fotoğrafı güncellendi");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("Yükleme başarısız.");
+      }
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
+  async function handleAvatarDelete() {
+    if (!user?.avatar_url) return;
+    if (!window.confirm("Profil fotoğrafını kaldırmak istediğine emin misin?")) {
+      return;
+    }
+    setAvatarBusy(true);
+    try {
+      const updated = await deleteAvatar();
+      setUser(updated);
+      toast.success("Profil fotoğrafı kaldırıldı");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("Silme başarısız.");
+      }
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
@@ -129,9 +190,59 @@ export default function MyProfilePage() {
 
       {form && user ? (
         <>
+          <section className="mt-6 flex items-center gap-4 rounded-lg border border-border bg-card p-6 shadow-sm">
+            <Avatar src={user.avatar_url} name={user.display_name} size="xl" />
+            <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="flex-1">
+                <div className="text-sm font-semibold">Profil fotoğrafı</div>
+                <p className="text-xs text-muted-foreground">
+                  JPG veya PNG, en fazla 2 MB.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  hidden
+                  onChange={handleAvatarPick}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={avatarBusy}
+                >
+                  <Upload className="h-4 w-4" />
+                  <span className="ml-1.5">
+                    {avatarBusy
+                      ? "Yükleniyor..."
+                      : user.avatar_url
+                        ? "Değiştir"
+                        : "Yükle"}
+                  </span>
+                </Button>
+                {user.avatar_url ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleAvatarDelete}
+                    disabled={avatarBusy}
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="ml-1">Kaldır</span>
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          </section>
+
           <form
             onSubmit={handleSubmit}
-            className="mt-6 rounded-lg border border-border bg-card p-6 shadow-sm"
+            className="mt-4 rounded-lg border border-border bg-card p-6 shadow-sm"
             noValidate
           >
             <div className="space-y-5">

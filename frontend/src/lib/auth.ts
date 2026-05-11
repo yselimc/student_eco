@@ -9,6 +9,7 @@ export type AuthUser = {
   display_name: string;
   university: string | null;
   department: string | null;
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -122,6 +123,27 @@ export async function updateMe(payload: UpdateMePayload): Promise<AuthUser> {
   const updated = await apiFetch<AuthUser>("/auth/me", {
     method: "PATCH",
     body: payload,
+    token: getToken(),
+  });
+  setStoredUser(updated);
+  return updated;
+}
+
+export async function uploadAvatar(file: File): Promise<AuthUser> {
+  const form = new FormData();
+  form.append("file", file);
+  const updated = await apiFetch<AuthUser>("/auth/me/avatar", {
+    method: "POST",
+    body: form,
+    token: getToken(),
+  });
+  setStoredUser(updated);
+  return updated;
+}
+
+export async function deleteAvatar(): Promise<AuthUser> {
+  const updated = await apiFetch<AuthUser>("/auth/me/avatar", {
+    method: "DELETE",
     token: getToken(),
   });
   setStoredUser(updated);

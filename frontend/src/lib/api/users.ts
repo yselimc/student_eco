@@ -6,6 +6,7 @@ export type PublicProfile = {
   display_name: string;
   university: string | null;
   department: string | null;
+  avatar_url: string | null;
   created_at: string;
   notes_count: number;
   listings_count: number;
