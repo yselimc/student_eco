@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Calendar, Check, Clock, MapPin, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PastEventBadge } from "@/components/events/past-event-badge";
 import { ApiError } from "@/lib/api";
@@ -248,12 +249,7 @@ export default function EventDetailPage() {
                           a.user_id === currentUserId && "font-semibold",
                         )}
                       >
-                        <span
-                          aria-hidden
-                          className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-[hsl(var(--events)/0.15)] text-xs font-semibold text-[hsl(var(--events))]"
-                        >
-                          {a.display_name.slice(0, 1).toUpperCase()}
-                        </span>
+                        <Avatar src={a.avatar_url} name={a.display_name} size="sm" />
                         <Link
                           href={`/profile/${a.user_id}`}
                           className="truncate hover:underline"
@@ -271,14 +267,17 @@ export default function EventDetailPage() {
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
                 Organizatör
               </div>
-              <div className="mt-1 font-semibold">
-                <Link
-                  href={`/profile/${event.organizer_id}`}
-                  className="hover:underline"
-                >
-                  {event.organizer_name}
-                </Link>
-              </div>
+              <Link
+                href={`/profile/${event.organizer_id}`}
+                className="mt-1 flex items-center gap-2 hover:underline"
+              >
+                <Avatar
+                  src={event.organizer_avatar_url}
+                  name={event.organizer_name}
+                  size="sm"
+                />
+                <span className="font-semibold">{event.organizer_name}</span>
+              </Link>
             </div>
           </section>
         </div>

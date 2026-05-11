@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { AuthImage } from "@/components/marketplace/auth-image";
 import { ApiError } from "@/lib/api";
@@ -257,14 +258,13 @@ export default function ListingDetailPage() {
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
                 Satıcı
               </div>
-              <div className="mt-1 font-semibold text-foreground">
-                <Link
-                  href={`/profile/${listing.seller_id}`}
-                  className="hover:underline"
-                >
-                  {listing.seller_name}
-                </Link>
-              </div>
+              <Link
+                href={`/profile/${listing.seller_id}`}
+                className="mt-1 flex items-center gap-2 text-foreground hover:underline"
+              >
+                <Avatar src={listing.seller_avatar_url} name={listing.seller_name} size="sm" />
+                <span className="font-semibold">{listing.seller_name}</span>
+              </Link>
               <div className="mt-1 text-xs text-muted-foreground">
                 {formatDateTr(listing.created_at)} tarihinde yayınlandı
               </div>

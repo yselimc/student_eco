@@ -5,6 +5,7 @@ export type Note = {
   id: string;
   user_id: string;
   author_name: string;
+  author_avatar_url: string | null;
   title: string;
   description: string | null;
   course_code: string;

@@ -7,6 +7,7 @@ export type EventRead = {
   id: string;
   organizer_id: string;
   organizer_name: string;
+  organizer_avatar_url: string | null;
   title: string;
   description: string | null;
   category: EventCategory;
@@ -46,6 +47,7 @@ export type EventCreateInput = {
 export type Attendee = {
   user_id: string;
   display_name: string;
+  avatar_url: string | null;
   rsvp_at: string;
 };
 

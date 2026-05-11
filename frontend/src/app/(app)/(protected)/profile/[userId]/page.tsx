@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api";
 import { getPublicProfile, type PublicProfile } from "@/lib/api/users";
@@ -97,17 +98,11 @@ function ProfileView({
   profile: PublicProfile;
   isOwn: boolean;
 }) {
-  const initial = profile.display_name.trim().charAt(0).toUpperCase() || "?";
   return (
     <article className="rounded-lg border border-border bg-card p-6 shadow-sm">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div
-            className="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-primary-soft text-lg font-semibold text-primary-strong"
-            aria-hidden
-          >
-            {initial}
-          </div>
+          <Avatar src={profile.avatar_url} name={profile.display_name} size="lg" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
               {profile.display_name}
