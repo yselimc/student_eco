@@ -1,3 +1,10 @@
+# Alternate local setup — NOT in active use by the default development flow.
+# The project's DATABASE_URL points at the system Postgres on :5432 (see Day 2
+# fix 8df217c). This compose file spins up a containerized Postgres on :5433
+# for contributors who don't have a native Postgres install. To use it:
+#   docker compose up -d
+#   then set DATABASE_URL=postgresql+psycopg://student:student@localhost:5433/student_eco
+# Otherwise leave it alone.
 services:
   db:
     image: postgres:15

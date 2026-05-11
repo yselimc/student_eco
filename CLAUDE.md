@@ -52,7 +52,7 @@ Don't ask permission for creating these standard folders.
 - **Frontend:** Next.js 14+ (App Router), TypeScript, Tailwind CSS, shadcn/ui
 - **Auth:** JWT with python-jose + passlib (bcrypt)
 - **File storage:** Local `uploads/` folder (S3 migration is a future concern, not now)
-- **Package managers:** `uv` or `pip` for Python, `pnpm` for Node
+- **Package managers:** `uv` or `pip` for Python, `npm` for Node
 
 Don't propose stack changes mid-project. If something is genuinely blocking, raise it; otherwise stick to this.
 
@@ -174,7 +174,7 @@ cd backend && uvicorn app.main:app --reload
 
 **Start the frontend:**
 ```bash
-cd frontend && pnpm dev
+cd frontend && npm run dev
 ```
 
 **Run a migration:**

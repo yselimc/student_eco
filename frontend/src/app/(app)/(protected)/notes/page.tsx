@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,28 @@ import { listNotes, type Note } from "@/lib/api/notes";
 import { NOTE_COURSE_OPTIONS, NOTE_SEMESTER_OPTIONS } from "@/lib/notes/constants";
 
 export default function NotesPage() {
+  return (
+    <Suspense fallback={<NotesPageFallback />}>
+      <NotesPageContent />
+    </Suspense>
+  );
+}
+
+function NotesPageFallback() {
+  return (
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
+      <div className="h-9 w-32 animate-pulse rounded bg-muted" />
+      <div className="mt-6 h-10 animate-pulse rounded bg-muted" />
+      <div className="mt-6 flex flex-col gap-3" aria-busy>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-24 animate-pulse rounded-lg border border-border bg-muted/40" />
+        ))}
+      </div>
+    </main>
+  );
+}
+
+function NotesPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

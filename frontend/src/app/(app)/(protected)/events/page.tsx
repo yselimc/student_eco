@@ -3,7 +3,7 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { CalendarDays, List as ListIcon, Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,28 @@ function isViewMode(value: string | null): value is ViewMode {
 }
 
 export default function EventsPage() {
+  return (
+    <Suspense fallback={<EventsPageFallback />}>
+      <EventsPageContent />
+    </Suspense>
+  );
+}
+
+function EventsPageFallback() {
+  return (
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
+      <div className="h-9 w-40 animate-pulse rounded bg-muted" />
+      <div className="mt-6 h-10 animate-pulse rounded bg-muted" />
+      <div className="mt-6 flex flex-col gap-3" aria-busy>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-24 animate-pulse rounded-lg border border-border bg-muted/40" />
+        ))}
+      </div>
+    </main>
+  );
+}
+
+function EventsPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
