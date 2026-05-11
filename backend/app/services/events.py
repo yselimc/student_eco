@@ -39,6 +39,7 @@ class EventService:
         from_dt: datetime | None,
         to_dt: datetime | None,
         q: str | None,
+        mine_user_id: UUID | None,
         limit: int,
         offset: int,
     ) -> EventListResult:
@@ -51,6 +52,7 @@ class EventService:
             from_dt=from_dt,
             to_dt=to_dt,
             q=q,
+            mine_user_id=mine_user_id,
             limit=limit,
             offset=offset,
         )
