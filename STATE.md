@@ -4,18 +4,18 @@
 
 ## Current Position
 
-- **Day:** 5 of 6 — Phases 1-4 shipped; Phase 5 (`chore/tech-debt-cleanup`) is next
+- **Day:** 5 of 6 — Phases 1-5 shipped; Day 5 complete
 - **Active branch:** `main`
-- **Last commit:** `8f6c5ee` Merge pull request #7 from yselimc/feature/home-content
-- **Next step:** Day 5 Phase 5 = `chore/tech-debt-cleanup` (Day 3 items: `pnpm`→`npm` in CLAUDE.md, `uv.lock` tracking decision, npm-audit triage, Day 4 events docs reconciliation). Phase 6 = Day 5 wrap-up + Day 6 polish kickoff.
+- **Last commit:** `87dff63` chore: Phase 5 tech-debt cleanup (direct on main)
+- **Next step:** Day 6 — Polish + Demo. Open items at kickoff: docs reconciliation (events drift from Day 4 + profile/avatar API contract from Phase 3), Day 5 wrap-up snapshot is below.
 - **Blockers:** None.
 
 ## Services
 
-- Backend: running on `:8000` (uvicorn, foreground was killed earlier this session and restarted; still up at session close)
-- Frontend: running on `:3000` (`npm run dev`, still up at session close)
-- Postgres: running on `:5432` (system service)
-- If the user wants a clean stop before next session: `pkill -f "uvicorn app.main"` and Ctrl-C the next-dev terminal, or just leave them running.
+- Backend: **stopped** at session close (uvicorn killed by user request).
+- Frontend: **stopped** at session close (next dev was killed before `npm run build` for the Phase 5 Suspense verification and not restarted).
+- Postgres: running on `:5432` (system service, untouched).
+- Restart cheat sheet: `cd backend && source .venv/bin/activate && uvicorn app.main:app --port 8000 --reload` and `cd frontend && npm run dev`.
 
 ## Day Progress
 
@@ -89,7 +89,13 @@
 - Phase 4 — Home page content merged via PR #7 (`8f6c5ee`, 2 commits):
   - `d47f655` feat(backend): add ?mine=1 filter to GET /events
   - `fc3677e` feat(frontend): authenticated home page content
-- Phases 5-6 not yet started.
+- Phase 5 — Tech-debt cleanup landed direct on main as `87dff63` (single commit, no PR per CLAUDE.md "trivial chores can land directly on main"):
+  - Suspense-wrapped `useSearchParams` on 4 list pages (notes, marketplace, events, buddies) — `npm run build` now passes
+  - `backend/uv.lock` tracked
+  - `CLAUDE.md` `pnpm` → `npm` (both hits)
+  - `docker-compose.yml` annotated as alternate setup (kept rather than removed)
+  - stale `curl :5433` permission dropped from `.claude/settings.local.json` (local-only, not in commit)
+- Phase 6 (Day 6 — Polish + Demo) not yet started.
 
 ### Day 6 — Polish + Demo 🔜
 
@@ -99,13 +105,16 @@ Not started.
 
 - **bcrypt 72-byte truncation** [Day 1] — passwords longer than 72 bytes are silently truncated. Acceptable for v1 demo.
 - **localStorage XSS exposure for JWT** [Day 1] — known tradeoff documented in `docs/05-frontend-pages.md`. Acceptable for v1.
-- **`useSearchParams` Suspense bailout** [Day 2] — dev warning only; needs `<Suspense>` wrapper before deploy.
-- **No navbar links to feature pages** [Day 3] — `/messages`, `/marketplace`, `/notes` only reachable by direct URL or after first action. Polish in Day 4 or 5.
-- **`CLAUDE.md` line 32 says `pnpm`** [Day 3] — project actually uses `npm`. Fix wording in next chore commit.
-- **`backend/uv.lock` untracked** [Day 1, surfaced Day 3] — decide tracked-or-ignored. [Day 5 polish]
-- **Events doc deviations from `docs/03-database-schema.md` and `docs/04-api-spec.md`** [Day 4] — schema doc lists `career` not `culture`; doesn't enforce category enum at DB level (we added a CHECK); attendee shape doc says `{user_id, full_name, department}` but we return `{user_id, display_name, rsvp_at}` (User model has `display_name`, no `department` column); spec lists `PATCH /events/{id}` we didn't implement (no edit for v1); neither doc mentions `max_attendees`. Reconcile in Day 5/6 doc-polish pass.
-- **npm audit warnings from `react-big-calendar` transitive deps** [Day 4] — 5 vulnerabilities reported (1 moderate, 4 high) at install. Not blocking the demo; assess severity and decide patch-or-accept on Day 5.
+- **Docs drift from current implementation** [Day 4 events + Phase 3 profile/avatar] — `docs/03-database-schema.md` §2.1 users is missing `university`/`department`/`avatar_path`/`updated_at`; §2.5 events lists `career` not `culture`, missing `max_attendees`, missing CHECK constraints. `docs/04-api-spec.md` §3 still describes the old `/users/me` shape (no profile DTO with counts); §6 lists `PATCH /events/{id}` that doesn't exist, missing `?mine=1` filter, wrong attendee shape (`{user_id, full_name, department}` vs actual `{user_id, display_name, avatar_url, rsvp_at}`), missing `max_attendees`; auth section missing `PATCH /auth/me` + `POST/DELETE /auth/me/avatar`; `avatar_url` field missing on several DTOs. Reconcile in Day 6 docs pass.
+- **npm audit: 5 Next.js CVEs (4 high + 1 moderate)** [Day 4, re-attributed Phase 5] — vulnerabilities are in Next.js itself (`next`, `@next/eslint-plugin-next`, transitive `glob`/`postcss`), **not** in `react-big-calendar` as originally guessed. Only patch is `next@16.2.6` (major version bump, breaking). **Accepted for v1:** the CVEs are in dev-server / image-optimization paths that don't affect the localhost demo; major bump mid-graduation-project is too risky. Post-demo task.
 - **`validation_handler` `ctx.error` serializes as `{}`** [Day 4] — the `bee689d` fix uses `jsonable_encoder` which coerces non-JSON values to empty dicts. Field error message still carries the human-readable text via the `msg` field; the `ctx` is just lossy. Acceptable; flag if a future error path needs richer ctx.
+
+### Closed by Phase 5 (`87dff63`)
+
+- ~~`useSearchParams` Suspense bailout~~ [Day 2] — fixed by Suspense-wrapping notes/marketplace/events/buddies list pages.
+- ~~No navbar links to feature pages~~ [Day 3] — closed by Phase 2 (`feature/navbar-links`); formally retired here.
+- ~~`CLAUDE.md` `pnpm` references~~ [Day 3] — corrected on lines 55 + 177.
+- ~~`backend/uv.lock` untracked~~ [Day 1] — now tracked.
 
 ## Decisions Log
 
@@ -142,6 +151,9 @@ Short bullets of "we chose X over Y because Z" — for context recovery.
 29. **Home page data-fetching: 4 parallel client-side fetches over a `/home/feed` aggregate** — parallel `Promise.all` saves nothing meaningful vs a single aggregate (max of fetches, not sum), reuses existing endpoints, gives each section its own loading/empty/error state, and matches the rest of the app. Aggregate endpoint was rejected because it's purpose-built, hard to reuse, and grows with every new home widget.
 30. **`?mine=1` query param on `GET /events`** — picked over two new endpoints (`/events/organized` + `/events/attending`). One-line OR filter (`organizer_id = me OR id IN (event_attendees WHERE user_id = me)`); reusable for any future "My events" UI; default behavior unchanged when omitted. Combines with the existing `from`/`to`/`category`/`q`/`limit`/`offset` filters.
 31. **Home page route: branch inside `(app)/page.tsx` on `hydrated && user`, not a separate authed route** — guest landing CTAs and authed dashboard both live at `/`. SSR returns a thin shell; the client picks the view after reading localStorage. Avoids redirect loops and matches how the navbar already gates on auth state.
+32. **`docker-compose.yml` kept-with-comment over removed** [Phase 5] — Day 2's `8df217c` switched DATABASE_URL to system Postgres on `:5432`, leaving the compose file (Postgres-on-:5433) orphaned. Removing it loses an option for contributors without a native Postgres install for ~zero ongoing cost; a 7-line header comment annotates it as alternate setup with the env-var override needed to use it.
+33. **Suspense fix style: thin outer wrapper renaming body to `<Name>PageContent`** [Phase 5] — for each of the 4 list pages with `useSearchParams`, the default export becomes `<Suspense fallback={<PageFallback />}><PageContent /></Suspense>`; the original body is renamed to `<Name>PageContent` and the fallback is a header+filter+list skeleton matching the page's chrome. Smallest possible diff that satisfies Next 15's CSR-bailout boundary requirement; alternatives like extracting only the search-param-reading sub-block would have churned more JSX for no functional gain.
+34. **npm audit accept-for-v1** [Phase 5] — 5 Next.js CVEs (re-attributed from `react-big-calendar` to `next` itself + its eslint plugin) require a `next@16.2.6` major bump to patch. Decided to document and accept rather than patch: CVEs affect dev-server / image-optimization paths not used by the localhost demo, and a Next major mid-graduation-project is too risky.
 
 ## Recent Session Snapshots
 
@@ -160,6 +172,15 @@ Short bullets of "we chose X over Y because Z" — for context recovery.
   - Events docs (`03-database-schema.md`, `04-api-spec.md`) drift from implementation in several places (category set, attendee shape, no PATCH, no `max_attendees`) — Day 5 doc-polish
   - Servers (backend `:8000`, frontend `:3000`) left running at session close
   - Day 3 tech debt items (navbar links, `pnpm` typo, `uv.lock` decision) all still open — bundle into Day 5 polish per user's earlier call
+
+### 2026-05-11 — Day 5 Phase 5: tech-debt cleanup + Day 5 wrap-up
+
+- **Done this session:** Landed Phase 5 as `87dff63` directly on main (single commit, no PR per CLAUDE.md "trivial chores"). Suspense-wrapped `useSearchParams` on four list pages (notes/marketplace/events/buddies — buddies was missed by the original Day-2 debt note but had the same pattern; build would have failed without it). Verified via `npm run build`: ✓ Compiled, 17/17 pages, all four list routes now Static. Tracked `backend/uv.lock`. Corrected `CLAUDE.md` `pnpm` → `npm` on both hits. Annotated `docker-compose.yml` with a 7-line header comment marking it as alternate setup (kept over removed; preserves the option for contributors without native Postgres). Dropped stale `curl :5433` permission from `.claude/settings.local.json` (local-only, not in commit since the file is gitignored). Re-attributed the npm-audit warnings from `react-big-calendar` to Next.js itself (5 CVEs, fix is `next@16.2.6` major bump) and accepted-for-v1.
+- **Next:** Day 6 — Polish + Demo. Open kickoff items: docs reconciliation (events Day-4 drift + profile/avatar Phase-3 drift, both in `docs/03-database-schema.md` and `docs/04-api-spec.md`), final demo prep (seed data sanity, smoke walkthrough of all 4 modules + home + profile flows).
+- **Unresolved:**
+  - Backend and frontend dev servers both stopped at session close — restart instructions in the Services section.
+  - Docs drift item is the biggest open piece; bundled into a single Open Tech Debt entry covering both events and profile/avatar surfaces.
+  - Next.js CVEs accepted-for-v1 — flagged in Decisions Log #34 and the corresponding Open Tech Debt bullet.
 
 ### 2026-05-11 — Day 5 Phase 4: home page content
 
