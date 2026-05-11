@@ -7,7 +7,16 @@ export type AuthUser = {
   id: string;
   email: string;
   display_name: string;
+  university: string | null;
+  department: string | null;
   created_at: string;
+  updated_at: string;
+};
+
+export type UpdateMePayload = {
+  display_name?: string;
+  university?: string | null;
+  department?: string | null;
 };
 
 export type TokenResponse = {
@@ -107,4 +116,14 @@ export async function fetchMe(): Promise<AuthUser> {
     method: "GET",
     token: getToken(),
   });
+}
+
+export async function updateMe(payload: UpdateMePayload): Promise<AuthUser> {
+  const updated = await apiFetch<AuthUser>("/auth/me", {
+    method: "PATCH",
+    body: payload,
+    token: getToken(),
+  });
+  setStoredUser(updated);
+  return updated;
 }
