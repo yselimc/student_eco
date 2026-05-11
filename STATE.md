@@ -4,10 +4,10 @@
 
 ## Current Position
 
-- **Day:** 5 of 6 — module TBD at kickoff
+- **Day:** 5 of 6 — Phases 1-3 shipped; Phase 4 TBD at kickoff
 - **Active branch:** `main`
-- **Last commit:** `c0e01a3` Merge pull request #3 from yselimc/feature/events
-- **Next step:** Day 5. Original roadmap puts Study Buddy on Day 3 afternoon and Polish on Day 5. Our timeline has shifted: Marketplace + Messaging compressed into our Day 3, Events into our Day 4, so Day 5 has two reasonable framings — (a) Study Buddy module on `feature/buddies`, then Polish on Day 6, or (b) Skip Buddy and go to Polish since the four-module spec is already largely demoable. Decide at kickoff.
+- **Last commit:** `13d570a` Merge pull request #6 from yselimc/feature/profile
+- **Next step:** Day 5 Phase 4 — topic TBD at kickoff. Remaining sequenced phases per the in-flight plan: Phase 5 = `chore/tech-debt-cleanup` (Day 3 items: navbar typo, `uv.lock` decision, npm-audit, Day 4 events doc drift), Phase 6 = Day 5 wrap-up + Day 6 polish kickoff.
 - **Blockers:** None.
 
 ## Services
@@ -71,9 +71,22 @@
 - New deps: `react-big-calendar@^1.19`, `date-fns@^3.6`, `@types/react-big-calendar`
 - Tech-debt notes added this day (see Open Tech Debt for full list)
 
-### Day 5 — TBD 🔜
+### Day 5 — Phases 1-3 (Buddy + Navbar + Profile/Avatar) ✅ partial
 
-Not started. Plan at kickoff (see Current Position for the Buddy-vs-Polish framing).
+- Phase 1 — Study buddy module merged via PR #4 (`dd8be1b`). `feature/buddy` branch. Frontend buddy public profile (B4) + earlier B1-B3 sub-features.
+- Phase 2 — Navbar feature links + Profilim dropdown merged via PR #5 (`351ef44`, single commit `5533e9a`). Closed the Day 3 "no navbar links" debt item (still listed below pending Phase 5 chore commit per convention).
+- Phase 3 — Profile pages + avatar feature merged via PR #6 (`13d570a`, 10 commits):
+  - `68a3077` feat(backend): add user profile fields to users + migration (4bb7abc9298c — university, department, updated_at)
+  - `cc22362` feat(backend): PATCH /auth/me + GET /users/{id}/profile (public DTO with 4 counts)
+  - `1ddec2d` feat(frontend): profile API + /profile/me view + edit page
+  - `0630df6` feat(frontend): /profile/[userId] public profile page
+  - `f9f61e8` feat(frontend): link names to /profile/{userId} on detail pages
+  - `79d699c` feat(backend): users.avatar_path + uploads/avatars static mount (migration 9c42bcd130fa)
+  - `b04850d` feat(backend): POST/DELETE /auth/me/avatar + avatar_url on user DTOs
+  - `70ef18c` feat(backend): include avatar_url on listing/note/event/attendee DTOs
+  - `4acb0a6` feat(frontend): Avatar component + upload UI on /profile/me
+  - `eeb3d4b` feat(frontend): avatars on public profile, navbar, and detail pages
+- Phases 4-6 not yet started.
 
 ### Day 6 — Polish + Demo 🔜
 
@@ -118,6 +131,11 @@ Short bullets of "we chose X over Y because Z" — for context recovery.
 21. **`EventFullError(ConflictError)` with `error_code='event_full'`** — frontend distinguishes "you already RSVPed" (409 `conflict`) from "event is full" (409 `event_full`) without parsing message text. Domain error subclass lives in `services/events.py` to keep `core/exceptions.py` domain-free.
 22. **No edit endpoint for events in v1** — delete + recreate is the supported flow. Capacity is set at creation time only; later changes are out of scope.
 23. **`events` table has CHECK constraints at the DB level** — category enum + `ends_at >= starts_at` + `max_attendees IS NULL OR max_attendees >= 1`. Defense in depth on top of Pydantic validation; protects against direct SQL writes (e.g., the upcoming seed script).
+24. **PATCH /auth/me editable fields: `display_name`, `university`, `department` only** — email and password stay non-editable. Email change needs verification (out of scope); password reset out of scope per CLAUDE.md. Null on optional fields clears them; null/empty `display_name` returns 422.
+25. **PublicProfileRead does not include email** — public profile is shown to other students; leaking email defeats the contact-via-buddy / messages-via-listing flows. Counts surfaced: `notes_count`, `listings_count` (active only — "what they're currently selling"), `events_organized_count` (total), `buddy_profile_id` (UUID or null so the frontend can link to /buddies/{id} without a second roundtrip). Excluded: messages, RSVPed events (private to the user).
+26. **/uploads/avatars/\* is public StaticFiles, not auth-gated** — overrides the `listings/` and `notes/` pattern. Reason: avatars are inherently public once shown on a `/profile/{userId}` page; auth-gating adds friction (custom `<AuthImage />` wrapper, blob URL lifecycle) without privacy benefit. Notes and listing images stay auth-gated because they have real privacy expectations.
+27. **Avatar filename = `{uuid4().hex}.{ext}`, not `{user_id}.{ext}`** — each upload gets a fresh URL. Old file deleted on replace inside `set_avatar`. Cache-busting is free; no `?v=timestamp` query param needed. DB stores only the relative path `avatars/<uuid>.<ext>`; `avatar_url_from_path()` prepends `/uploads/`.
+28. **Avatar surfaces: detail pages + navbar only, no list cards** — `ListingCard`, `NoteCard`, `EventRow` all wrap their content in a single outer `<Link>`. Adding a nested `<Link>` for the avatar/name would invalidate the HTML; pulling out the outer Link in favor of `onClick` is a bigger refactor than the demo needs. Avatars live on the 4 detail pages (marketplace, notes, events) + navbar dropdown/mobile sheet + both profile pages.
 
 ## Recent Session Snapshots
 
@@ -136,6 +154,16 @@ Short bullets of "we chose X over Y because Z" — for context recovery.
   - Events docs (`03-database-schema.md`, `04-api-spec.md`) drift from implementation in several places (category set, attendee shape, no PATCH, no `max_attendees`) — Day 5 doc-polish
   - Servers (backend `:8000`, frontend `:3000`) left running at session close
   - Day 3 tech debt items (navbar links, `pnpm` typo, `uv.lock` decision) all still open — bundle into Day 5 polish per user's earlier call
+
+### 2026-05-11 — Day 5 Phase 3: profile pages + avatar feature
+
+- **Done this session:** Merged `feature/profile` via PR #6 (`13d570a`, 10 commits — see Day 5 section for commit list). Phase 3 backend: PATCH /auth/me (display_name/university/department, null clears optionals, 422 on empty/null display_name) + GET /users/{user_id}/profile (4 counts, email excluded). Phase 3 frontend: /profile/me view+edit, /profile/[userId] public, name links wired on marketplace/notes/events detail pages (not list cards — outer Link wrappers). User then asked for an unplanned avatar feature mid-phase; pushed back briefly with the time cost, agreed on "Minimal" scope, then shipped: backend POST/DELETE /auth/me/avatar (2 MB JPG/PNG, magic-byte validated, atomic replace via uuid filename, /uploads/avatars/* public StaticFiles mount), `avatar_url` added to UserOut + PublicProfileRead + ListingRead + NoteRead + EventRead + AttendeeRead via existing user joins (one extra SELECT column, no new queries). Frontend: `<Avatar />` primitive with initials fallback (sm/md/lg/xl), upload UI on /profile/me, avatars rendered on /profile/[userId], navbar dropdown trigger + mobile sheet, marketplace seller card, notes author byline, events organizer card + attendee list. Two migrations: `4bb7abc9298c` (profile fields), `9c42bcd130fa` (avatar_path). Backend smoke-tested via curl end-to-end (replace, idempotent delete, MIME/magic/size rejections, counts match psql ground truth). Frontend tsc + eslint clean; all routes 200; user visually verified before merge.
+- **Next:** Day 5 Phase 4 — topic TBD at kickoff. After Phase 4, sequenced phases are Phase 5 (`chore/tech-debt-cleanup`) and Phase 6 (Day 5 wrap-up + Day 6 polish kickoff).
+- **Unresolved:**
+  - Backend running on `:8000` (uvicorn, foreground, no `--reload`), frontend on `:3000` (`npm run dev`) at session close.
+  - Day 3 tech-debt items still on the Open Tech Debt list pending Phase 5 chore commit (navbar typo, `uv.lock` decision, the navbar-links debt closed by Phase 2 but still listed by convention).
+  - Day 4 events docs drift not yet reconciled (deferred to Phase 5/6).
+  - npm-audit warnings on `react-big-calendar` transitive deps unchanged.
 
 ### 2026-05-11 — Day 5 Phase 2: navbar feature links
 
