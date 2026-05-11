@@ -15,6 +15,7 @@ from app.models.user import User
 class ListingWithMeta:
     listing: Listing
     seller_name: str
+    seller_avatar_path: str | None
 
 
 @dataclass(frozen=True)
@@ -50,7 +51,7 @@ class ListingRepository:
         total = self.db.execute(count_stmt).scalar_one()
 
         stmt = (
-            select(Listing, User.display_name)
+            select(Listing, User.display_name, User.avatar_path)
             .join(User, User.id == Listing.seller_id)
             .options(selectinload(Listing.images))
             .order_by(Listing.created_at.desc())
@@ -61,19 +62,24 @@ class ListingRepository:
             stmt = stmt.where(*filters)
 
         rows = self.db.execute(stmt).all()
-        items = [ListingWithMeta(listing=row[0], seller_name=row[1]) for row in rows]
+        items = [
+            ListingWithMeta(listing=row[0], seller_name=row[1], seller_avatar_path=row[2])
+            for row in rows
+        ]
         return ListingListResult(items=items, total=total)
 
     def get(self, listing_id: UUID) -> ListingWithMeta | None:
         row = self.db.execute(
-            select(Listing, User.display_name)
+            select(Listing, User.display_name, User.avatar_path)
             .join(User, User.id == Listing.seller_id)
             .options(selectinload(Listing.images))
             .where(Listing.id == listing_id)
         ).first()
         if row is None:
             return None
-        return ListingWithMeta(listing=row[0], seller_name=row[1])
+        return ListingWithMeta(
+            listing=row[0], seller_name=row[1], seller_avatar_path=row[2]
+        )
 
     def get_image(self, image_id: UUID) -> ListingImage | None:
         return self.db.execute(

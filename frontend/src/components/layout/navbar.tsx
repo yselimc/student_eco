@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Menu, Moon, Sun, X } from "lucide-react";
 import { toast } from "sonner";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -44,11 +45,6 @@ function applyTheme(theme: Theme) {
 function readInitialTheme(): Theme {
   if (typeof window === "undefined") return "light";
   return document.documentElement.classList.contains("dark") ? "dark" : "light";
-}
-
-function initials(user: AuthUser): string {
-  const source = user.display_name?.trim() || user.email;
-  return source.charAt(0).toUpperCase();
 }
 
 export function Navbar() {
@@ -129,10 +125,10 @@ export function Navbar() {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary-strong ring-offset-background transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="rounded-full ring-offset-background transition-shadow hover:ring-2 hover:ring-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   aria-label="Hesap menüsü"
                 >
-                  {initials(user)}
+                  <Avatar src={user.avatar_url} name={user.display_name || user.email} size="md" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -191,9 +187,7 @@ export function Navbar() {
             {hydrated && user ? (
               <>
                 <div className="flex items-center gap-3 rounded-md bg-primary-soft px-3 py-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary-strong">
-                    {initials(user)}
-                  </div>
+                  <Avatar src={user.avatar_url} name={user.display_name || user.email} size="md" />
                   <div className="flex min-w-0 flex-col">
                     <span className="truncate text-sm font-medium text-foreground">
                       {user.display_name || "Öğrenci"}

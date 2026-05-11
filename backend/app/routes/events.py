@@ -16,6 +16,7 @@ from app.schemas.events import (
     RsvpRead,
 )
 from app.services.events import EventService
+from app.storage.uploaders import avatar_url_from_path
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -25,6 +26,7 @@ def _to_read(item: EventWithMeta) -> EventRead:
         id=item.event.id,
         organizer_id=item.event.organizer_id,
         organizer_name=item.organizer_name,
+        organizer_avatar_url=avatar_url_from_path(item.organizer_avatar_path),
         title=item.event.title,
         description=item.event.description,
         category=item.event.category,
@@ -129,6 +131,7 @@ def list_attendees(
             AttendeeRead(
                 user_id=r.user_id,
                 display_name=r.display_name,
+                avatar_url=avatar_url_from_path(r.avatar_path),
                 rsvp_at=r.rsvp_at,
             )
             for r in rows

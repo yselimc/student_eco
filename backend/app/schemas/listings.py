@@ -30,6 +30,7 @@ class ListingRead(BaseModel):
     id: UUID
     seller_id: UUID
     seller_name: str
+    seller_avatar_url: str | None
     title: str
     description: str | None
     price: int

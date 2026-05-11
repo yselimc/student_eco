@@ -14,6 +14,7 @@ from app.models.user import User
 class NoteListItem:
     note: Note
     author_name: str
+    author_avatar_path: str | None
 
 
 @dataclass(frozen=True)
@@ -49,7 +50,7 @@ class NoteRepository:
         total = self.db.execute(count_stmt).scalar_one()
 
         stmt = (
-            select(Note, User.display_name)
+            select(Note, User.display_name, User.avatar_path)
             .join(User, User.id == Note.user_id)
             .order_by(Note.created_at.desc())
             .limit(limit)
@@ -59,18 +60,21 @@ class NoteRepository:
             stmt = stmt.where(*filters)
 
         rows = self.db.execute(stmt).all()
-        items = [NoteListItem(note=row[0], author_name=row[1]) for row in rows]
+        items = [
+            NoteListItem(note=row[0], author_name=row[1], author_avatar_path=row[2])
+            for row in rows
+        ]
         return NoteListResult(items=items, total=total)
 
     def get(self, note_id: UUID) -> NoteListItem | None:
         row = self.db.execute(
-            select(Note, User.display_name)
+            select(Note, User.display_name, User.avatar_path)
             .join(User, User.id == Note.user_id)
             .where(Note.id == note_id)
         ).first()
         if row is None:
             return None
-        return NoteListItem(note=row[0], author_name=row[1])
+        return NoteListItem(note=row[0], author_name=row[1], author_avatar_path=row[2])
 
     def create(
         self,

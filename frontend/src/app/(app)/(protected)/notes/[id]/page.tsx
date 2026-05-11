@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Download, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api";
 import { deleteNote, downloadNote, getNote, type Note } from "@/lib/api/notes";
@@ -116,7 +117,18 @@ export default function NoteDetailPage() {
                     {note.semester}
                   </span>
                   <span aria-hidden className="text-muted-foreground/60">·</span>
-                  <span>{note.author_name}</span>
+                  <Link
+                    href={`/profile/${note.user_id}`}
+                    className="flex items-center gap-1.5 hover:text-foreground hover:underline"
+                  >
+                    <Avatar
+                      src={note.author_avatar_url}
+                      name={note.author_name}
+                      size="sm"
+                      className="h-5 w-5 text-[10px]"
+                    />
+                    {note.author_name}
+                  </Link>
                 </div>
               </div>
             </div>
