@@ -45,11 +45,11 @@ def save_pdf(file: UploadFile, subdir: str = "notes") -> tuple[str, int]:
     Validates MIME, extension, magic bytes (first chunk), and size cap.
     """
     if file.content_type not in PDF_MIME_TYPES:
-        raise UnsupportedMediaTypeError("Only PDF uploads are accepted")
+        raise UnsupportedMediaTypeError("Sadece PDF dosyaları yüklenebilir")
 
     original_name = (file.filename or "").lower()
     if not original_name.endswith(".pdf"):
-        raise UnsupportedMediaTypeError("File must have a .pdf extension")
+        raise UnsupportedMediaTypeError("Dosya .pdf uzantılı olmalıdır")
 
     target_dir = Path(settings.upload_dir) / subdir
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -63,11 +63,11 @@ def save_pdf(file: UploadFile, subdir: str = "notes") -> tuple[str, int]:
             while chunk := file.file.read(PDF_CHUNK_BYTES):
                 if not saw_magic:
                     if not chunk.startswith(PDF_MAGIC):
-                        raise UnsupportedMediaTypeError("File does not look like a PDF")
+                        raise UnsupportedMediaTypeError("Dosya geçerli bir PDF değil")
                     saw_magic = True
                 total += len(chunk)
                 if total > PDF_MAX_BYTES:
-                    raise PayloadTooLargeError("PDF exceeds 10 MB limit")
+                    raise PayloadTooLargeError("PDF 10 MB sınırını aşıyor")
                 out.write(chunk)
     except AppError:
         target_path.unlink(missing_ok=True)
@@ -78,7 +78,7 @@ def save_pdf(file: UploadFile, subdir: str = "notes") -> tuple[str, int]:
 
     if total == 0:
         target_path.unlink(missing_ok=True)
-        raise UnsupportedMediaTypeError("Empty file")
+        raise UnsupportedMediaTypeError("Dosya boş")
 
     return relative_path, total
 
@@ -90,11 +90,11 @@ def save_image(file: UploadFile, listing_id: UUID | str) -> tuple[str, int]:
     Validates MIME, extension, magic bytes (first chunk), and size cap.
     """
     if file.content_type not in IMAGE_MIME_TYPES:
-        raise UnsupportedMediaTypeError("Only JPG and PNG images are accepted")
+        raise UnsupportedMediaTypeError("Sadece JPG ve PNG görseller yüklenebilir")
 
     original_name = (file.filename or "").lower()
     if not original_name.endswith(IMAGE_EXTENSIONS):
-        raise UnsupportedMediaTypeError("Image must have a .jpg, .jpeg, or .png extension")
+        raise UnsupportedMediaTypeError("Görsel .jpg, .jpeg veya .png uzantılı olmalıdır")
 
     extension = ".jpg" if file.content_type == "image/jpeg" else ".png"
     expected_magic = JPEG_MAGIC if file.content_type == "image/jpeg" else PNG_MAGIC
@@ -112,11 +112,11 @@ def save_image(file: UploadFile, listing_id: UUID | str) -> tuple[str, int]:
             while chunk := file.file.read(IMAGE_CHUNK_BYTES):
                 if not saw_magic:
                     if not chunk.startswith(expected_magic):
-                        raise UnsupportedMediaTypeError("File does not look like a valid image")
+                        raise UnsupportedMediaTypeError("Dosya geçerli bir görsel değil")
                     saw_magic = True
                 total += len(chunk)
                 if total > IMAGE_MAX_BYTES:
-                    raise PayloadTooLargeError("Image exceeds 5 MB limit")
+                    raise PayloadTooLargeError("Görsel 5 MB sınırını aşıyor")
                 out.write(chunk)
     except AppError:
         target_path.unlink(missing_ok=True)
@@ -127,7 +127,7 @@ def save_image(file: UploadFile, listing_id: UUID | str) -> tuple[str, int]:
 
     if total == 0:
         target_path.unlink(missing_ok=True)
-        raise UnsupportedMediaTypeError("Empty file")
+        raise UnsupportedMediaTypeError("Dosya boş")
 
     return relative_path, total
 
@@ -139,11 +139,11 @@ def save_avatar(file: UploadFile) -> tuple[str, int]:
     Validates MIME, extension, magic bytes (first chunk), and size cap.
     """
     if file.content_type not in AVATAR_MIME_TYPES:
-        raise UnsupportedMediaTypeError("Only JPG and PNG avatars are accepted")
+        raise UnsupportedMediaTypeError("Profil fotoğrafı sadece JPG veya PNG olabilir")
 
     original_name = (file.filename or "").lower()
     if not original_name.endswith(AVATAR_EXTENSIONS):
-        raise UnsupportedMediaTypeError("Avatar must have a .jpg, .jpeg, or .png extension")
+        raise UnsupportedMediaTypeError("Profil fotoğrafı .jpg, .jpeg veya .png uzantılı olmalıdır")
 
     extension = ".jpg" if file.content_type == "image/jpeg" else ".png"
     expected_magic = JPEG_MAGIC if file.content_type == "image/jpeg" else PNG_MAGIC
@@ -160,11 +160,11 @@ def save_avatar(file: UploadFile) -> tuple[str, int]:
             while chunk := file.file.read(AVATAR_CHUNK_BYTES):
                 if not saw_magic:
                     if not chunk.startswith(expected_magic):
-                        raise UnsupportedMediaTypeError("File does not look like a valid image")
+                        raise UnsupportedMediaTypeError("Dosya geçerli bir görsel değil")
                     saw_magic = True
                 total += len(chunk)
                 if total > AVATAR_MAX_BYTES:
-                    raise PayloadTooLargeError("Avatar exceeds 2 MB limit")
+                    raise PayloadTooLargeError("Profil fotoğrafı 2 MB sınırını aşıyor")
                 out.write(chunk)
     except AppError:
         target_path.unlink(missing_ok=True)
@@ -175,7 +175,7 @@ def save_avatar(file: UploadFile) -> tuple[str, int]:
 
     if total == 0:
         target_path.unlink(missing_ok=True)
-        raise UnsupportedMediaTypeError("Empty file")
+        raise UnsupportedMediaTypeError("Dosya boş")
 
     return relative_path, total
 

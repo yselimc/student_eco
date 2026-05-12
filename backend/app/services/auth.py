@@ -17,7 +17,7 @@ class AuthService:
     def register(self, payload: RegisterRequest) -> tuple[User, str]:
         email = payload.email.lower().strip()
         if self.users.get_by_email(email):
-            raise ConflictError("Email already registered")
+            raise ConflictError("Bu e-posta adresi zaten kayıtlı")
         user = self.users.create(
             email=email,
             password_hash=hash_password(payload.password),
@@ -29,11 +29,11 @@ class AuthService:
         email = payload.email.lower().strip()
         user = self.users.get_by_email(email)
         if user is None or not verify_password(payload.password, user.password_hash):
-            raise UnauthenticatedError("Invalid email or password")
+            raise UnauthenticatedError("E-posta veya şifre hatalı")
         return user, create_access_token(user.id)
 
     def get_user(self, user_id: UUID) -> User:
         user = self.users.get_by_id(user_id)
         if user is None:
-            raise NotFoundError("User not found")
+            raise NotFoundError("Kullanıcı bulunamadı")
         return user

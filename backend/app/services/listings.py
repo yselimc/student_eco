@@ -47,7 +47,7 @@ class ListingService:
     def get(self, listing_id: UUID) -> ListingWithMeta:
         item = self.listings.get(listing_id)
         if item is None:
-            raise NotFoundError("Listing not found")
+            raise NotFoundError("İlan bulunamadı")
         return item
 
     def create_with_images(
@@ -61,14 +61,14 @@ class ListingService:
         files: list[UploadFile],
     ) -> ListingWithMeta:
         if category not in LISTING_CATEGORIES:
-            raise ValidationFailedError("Unknown category")
+            raise ValidationFailedError("Geçersiz kategori")
         if price < 0:
-            raise ValidationFailedError("Price cannot be negative")
+            raise ValidationFailedError("Fiyat negatif olamaz")
         if len(files) == 0:
-            raise ValidationFailedError("At least one image is required")
+            raise ValidationFailedError("En az bir görsel yüklemelisiniz")
         if len(files) > MAX_IMAGES_PER_LISTING:
             raise ValidationFailedError(
-                f"At most {MAX_IMAGES_PER_LISTING} images per listing"
+                f"Bir ilana en fazla {MAX_IMAGES_PER_LISTING} görsel ekleyebilirsiniz"
             )
 
         listing_id = uuid4()
@@ -112,12 +112,12 @@ class ListingService:
         requester_id: UUID,
     ) -> ListingWithMeta:
         if status not in ALLOWED_STATUSES:
-            raise ValidationFailedError("Invalid status")
+            raise ValidationFailedError("Geçersiz durum")
         item = self.listings.get(listing_id)
         if item is None:
-            raise NotFoundError("Listing not found")
+            raise NotFoundError("İlan bulunamadı")
         if item.listing.seller_id != requester_id:
-            raise ForbiddenError("Only the seller can update this listing")
+            raise ForbiddenError("Bu ilanı sadece satıcısı güncelleyebilir")
         item.listing.status = status
         self.db.commit()
         return self.get(listing_id)
@@ -125,9 +125,9 @@ class ListingService:
     def delete(self, *, listing_id: UUID, requester_id: UUID) -> None:
         item = self.listings.get(listing_id)
         if item is None:
-            raise NotFoundError("Listing not found")
+            raise NotFoundError("İlan bulunamadı")
         if item.listing.seller_id != requester_id:
-            raise ForbiddenError("Only the seller can delete this listing")
+            raise ForbiddenError("Bu ilanı sadece satıcısı silebilir")
         self.db.delete(item.listing)
         self.db.commit()
         listing_dir = absolute_upload_path(f"listings/{listing_id}")
@@ -139,8 +139,8 @@ class ListingService:
     ) -> tuple[ListingImage, Path]:
         image = self.listings.get_image(image_id)
         if image is None or image.listing_id != listing_id:
-            raise NotFoundError("Image not found")
+            raise NotFoundError("Görsel bulunamadı")
         path = absolute_upload_path(image.file_path)
         if not path.exists():
-            raise NotFoundError("File missing on disk")
+            raise NotFoundError("Dosya sunucuda bulunamadı")
         return image, path

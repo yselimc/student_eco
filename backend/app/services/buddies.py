@@ -27,13 +27,13 @@ class BuddyService:
     def get_me(self, user_id: UUID) -> BuddyWithUser:
         item = self.buddies.get_by_user_id(user_id)
         if item is None:
-            raise NotFoundError("Buddy profile not found")
+            raise NotFoundError("Çalışma arkadaşı profili bulunamadı")
         return item
 
     def get_by_user_id(self, user_id: UUID) -> BuddyWithUser:
         item = self.buddies.get_by_user_id(user_id)
         if item is None:
-            raise NotFoundError("Buddy profile not found")
+            raise NotFoundError("Çalışma arkadaşı profili bulunamadı")
         return item
 
     def upsert_me(
@@ -42,7 +42,7 @@ class BuddyService:
         contact_dict = payload.contact_info.model_dump(exclude_none=True)
         if not contact_dict:
             raise BuddyContactRequiredError(
-                "At least one of instagram, discord, telefon is required"
+                "En az bir iletişim yöntemi (Instagram, Discord veya telefon) gereklidir"
             )
         _, created = self.buddies.upsert(
             user_id=user_id,
@@ -58,7 +58,7 @@ class BuddyService:
 
     def delete_me(self, user_id: UUID) -> None:
         if not self.buddies.delete(user_id):
-            raise NotFoundError("Buddy profile not found")
+            raise NotFoundError("Çalışma arkadaşı profili bulunamadı")
 
     def search(
         self,
@@ -71,9 +71,9 @@ class BuddyService:
         offset: int,
     ) -> BuddyListResult:
         if day is not None and day not in WEEKDAYS:
-            raise ValidationFailedError("Unknown weekday")
+            raise ValidationFailedError("Geçersiz gün")
         if study_style is not None and study_style not in STUDY_STYLES:
-            raise ValidationFailedError("Unknown study_style")
+            raise ValidationFailedError("Geçersiz çalışma tarzı")
         return self.buddies.search(
             course=course.strip() if course else None,
             day=day,

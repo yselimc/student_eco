@@ -45,9 +45,9 @@ class EventService:
         offset: int,
     ) -> EventListResult:
         if category is not None and category not in EVENT_CATEGORIES:
-            raise ValidationFailedError("Unknown category")
+            raise ValidationFailedError("Geçersiz kategori")
         if from_dt is not None and to_dt is not None and to_dt < from_dt:
-            raise ValidationFailedError("'to' must be on or after 'from'")
+            raise ValidationFailedError("'to' tarihi 'from' tarihinden önce olamaz")
         return self.events.list(
             category=category,
             from_dt=from_dt,
@@ -61,7 +61,7 @@ class EventService:
     def get(self, event_id: UUID) -> EventWithMeta:
         item = self.events.get(event_id)
         if item is None:
-            raise NotFoundError("Event not found")
+            raise NotFoundError("Etkinlik bulunamadı")
         return item
 
     def create(
@@ -77,11 +77,11 @@ class EventService:
         max_attendees: int | None,
     ) -> EventWithMeta:
         if category not in EVENT_CATEGORIES:
-            raise ValidationFailedError("Unknown category")
+            raise ValidationFailedError("Geçersiz kategori")
         if ends_at is not None and ends_at < starts_at:
-            raise ValidationFailedError("'ends_at' must be on or after 'starts_at'")
+            raise ValidationFailedError("Bitiş zamanı başlangıç zamanından önce olamaz")
         if max_attendees is not None and max_attendees < 1:
-            raise ValidationFailedError("'max_attendees' must be at least 1")
+            raise ValidationFailedError("Maksimum katılımcı sayısı en az 1 olmalıdır")
 
         event = Event(
             organizer_id=organizer_id,
@@ -100,44 +100,44 @@ class EventService:
     def delete(self, *, event_id: UUID, requester_id: UUID) -> None:
         item = self.events.get(event_id)
         if item is None:
-            raise NotFoundError("Event not found")
+            raise NotFoundError("Etkinlik bulunamadı")
         if item.event.organizer_id != requester_id:
-            raise ForbiddenError("Only the organizer can delete this event")
+            raise ForbiddenError("Bu etkinliği sadece düzenleyen kişi silebilir")
         self.db.delete(item.event)
         self.db.commit()
 
     def rsvp(self, *, event_id: UUID, user_id: UUID) -> EventAttendee:
         item = self.events.get(event_id)
         if item is None:
-            raise NotFoundError("Event not found")
+            raise NotFoundError("Etkinlik bulunamadı")
         existing = self.events.get_attendance(event_id=event_id, user_id=user_id)
         if existing is not None:
-            raise ConflictError("Already RSVPed to this event")
+            raise ConflictError("Bu etkinliğe zaten katılım onayı verdiniz")
         if (
             item.event.max_attendees is not None
             and item.attendee_count >= item.event.max_attendees
         ):
-            raise EventFullError("Event is full")
+            raise EventFullError("Etkinlik kontenjanı dolu")
         attendance = EventAttendee(event_id=event_id, user_id=user_id)
         self.db.add(attendance)
         try:
             self.db.commit()
         except IntegrityError as exc:
             self.db.rollback()
-            raise ConflictError("Already RSVPed to this event") from exc
+            raise ConflictError("Bu etkinliğe zaten katılım onayı verdiniz") from exc
         self.db.refresh(attendance)
         return attendance
 
     def cancel_rsvp(self, *, event_id: UUID, user_id: UUID) -> None:
         if self.events.get(event_id) is None:
-            raise NotFoundError("Event not found")
+            raise NotFoundError("Etkinlik bulunamadı")
         existing = self.events.get_attendance(event_id=event_id, user_id=user_id)
         if existing is None:
-            raise NotFoundError("RSVP not found")
+            raise NotFoundError("Katılım kaydı bulunamadı")
         self.db.delete(existing)
         self.db.commit()
 
     def list_attendees(self, *, event_id: UUID) -> list[AttendeeRow]:
         if self.events.get(event_id) is None:
-            raise NotFoundError("Event not found")
+            raise NotFoundError("Etkinlik bulunamadı")
         return self.events.list_attendees(event_id=event_id)

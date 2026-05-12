@@ -22,7 +22,7 @@ class UserService:
     def update_me(self, user_id: UUID, payload: UserMeUpdate) -> User:
         user = self.users.get_by_id(user_id)
         if user is None:
-            raise NotFoundError("User not found")
+            raise NotFoundError("Kullanıcı bulunamadı")
         fields = payload.model_dump(exclude_unset=True)
         if not fields:
             return user
@@ -31,7 +31,7 @@ class UserService:
     def set_avatar(self, user_id: UUID, file: UploadFile) -> User:
         user = self.users.get_by_id(user_id)
         if user is None:
-            raise NotFoundError("User not found")
+            raise NotFoundError("Kullanıcı bulunamadı")
         old_path = user.avatar_path
         new_path, _size = save_avatar(file)
         try:
@@ -46,7 +46,7 @@ class UserService:
     def clear_avatar(self, user_id: UUID) -> User:
         user = self.users.get_by_id(user_id)
         if user is None:
-            raise NotFoundError("User not found")
+            raise NotFoundError("Kullanıcı bulunamadı")
         old_path = user.avatar_path
         if old_path:
             self.users.update_fields(user, {"avatar_path": None})
@@ -56,7 +56,7 @@ class UserService:
     def get_public_profile(self, user_id: UUID) -> PublicProfileRead:
         user = self.users.get_by_id(user_id)
         if user is None:
-            raise NotFoundError("User not found")
+            raise NotFoundError("Kullanıcı bulunamadı")
         return PublicProfileRead(
             id=user.id,
             display_name=user.display_name,

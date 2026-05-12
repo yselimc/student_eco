@@ -31,22 +31,22 @@ class MessageService:
         body: str,
     ) -> Message:
         if recipient_id == sender_id:
-            raise ValidationFailedError("Cannot send a message to yourself")
+            raise ValidationFailedError("Kendinize mesaj gönderemezsiniz")
         clean_body = body.strip()
         if not clean_body:
-            raise ValidationFailedError("Message body cannot be empty")
+            raise ValidationFailedError("Mesaj içeriği boş olamaz")
 
         listing = self.db.execute(
             select(Listing).where(Listing.id == listing_id)
         ).scalar_one_or_none()
         if listing is None:
-            raise NotFoundError("Listing not found")
+            raise NotFoundError("İlan bulunamadı")
 
         recipient = self.db.execute(
             select(User).where(User.id == recipient_id)
         ).scalar_one_or_none()
         if recipient is None:
-            raise NotFoundError("Recipient not found")
+            raise NotFoundError("Alıcı bulunamadı")
 
         return self.messages.insert(
             sender_id=sender_id,
@@ -66,7 +66,7 @@ class MessageService:
         listing_id: UUID | None,
     ) -> list[Message]:
         if me_id == other_id:
-            raise ValidationFailedError("Cannot view a thread with yourself")
+            raise ValidationFailedError("Kendinizle olan bir mesaj dizisini görüntüleyemezsiniz")
         self.messages.mark_thread_read(
             me_id=me_id, other_id=other_id, listing_id=listing_id
         )
@@ -79,9 +79,9 @@ class MessageService:
     ) -> Message:
         msg = self.messages.get(message_id)
         if msg is None:
-            raise NotFoundError("Message not found")
+            raise NotFoundError("Mesaj bulunamadı")
         if msg.recipient_id != requester_id:
-            raise ForbiddenError("Only the recipient can mark a message as read")
+            raise ForbiddenError("Bir mesajı sadece alıcısı okundu olarak işaretleyebilir")
         if msg.read_at is None:
             msg.read_at = datetime.now(tz=timezone.utc)
             self.db.commit()

@@ -37,7 +37,7 @@ class NoteService:
     def get(self, note_id: UUID) -> NoteListItem:
         item = self.notes.get(note_id)
         if item is None:
-            raise NotFoundError("Note not found")
+            raise NotFoundError("Not bulunamadı")
         return item
 
     def create(
@@ -69,9 +69,9 @@ class NoteService:
     def delete(self, *, note_id: UUID, requester_id: UUID) -> None:
         item = self.notes.get(note_id)
         if item is None:
-            raise NotFoundError("Note not found")
+            raise NotFoundError("Not bulunamadı")
         if item.note.user_id != requester_id:
-            raise ForbiddenError("Only the uploader can delete this note")
+            raise ForbiddenError("Bu notu sadece yükleyen kişi silebilir")
         absolute_path = absolute_upload_path(item.note.file_path)
         self.notes.delete(item.note)
         absolute_path.unlink(missing_ok=True)
@@ -80,5 +80,5 @@ class NoteService:
         item = self.get(note_id)
         path = absolute_upload_path(item.note.file_path)
         if not path.exists():
-            raise NotFoundError("File missing on disk")
+            raise NotFoundError("Dosya sunucuda bulunamadı")
         return item.note, path
