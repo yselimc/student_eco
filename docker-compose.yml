@@ -1,27 +1,47 @@
-# Alternate local setup — NOT in active use by the default development flow.
-# The project's DATABASE_URL points at the system Postgres on :5432 (see Day 2
-# fix 8df217c). This compose file spins up a containerized Postgres on :5433
-# for contributors who don't have a native Postgres install. To use it:
-#   docker compose up -d
-#   then set DATABASE_URL=postgresql+psycopg://student:student@localhost:5433/student_eco
-# Otherwise leave it alone.
 services:
   db:
-    image: postgres:15
-    container_name: student_eco_db
+    image: postgres:16-alpine
     environment:
       POSTGRES_USER: student
       POSTGRES_PASSWORD: student
       POSTGRES_DB: student_eco
-    ports:
-      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U student -d student_eco"]
       interval: 5s
       timeout: 3s
       retries: 5
 
+  backend:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      # Inside the compose network the db is reachable via its service hostname, not localhost.
+      # This overrides DATABASE_URL from backend/.env (which targets host Postgres for native dev).
+      DATABASE_URL: postgresql+psycopg://student:student@db:5432/student_eco
+    volumes:
+      - uploads:/app/uploads
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # NEXT_PUBLIC_* must be available at build time (baked into the bundle).
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    env_file: ./frontend/.env.local
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
 volumes:
   pgdata:
+  uploads:
