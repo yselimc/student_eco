@@ -4,18 +4,38 @@
 
 ## Current Position
 
-- **Day:** 5 of 6 — Phases 1-5 shipped; Day 5 complete
+- **Day:** 6 of 6 — Day 5 complete; Day 6 kicked off with Docker setup landed
 - **Active branch:** `main`
-- **Last commit:** `87dff63` chore: Phase 5 tech-debt cleanup (direct on main)
-- **Next step:** Day 6 — Polish + Demo. Open items at kickoff: docs reconciliation (events drift from Day 4 + profile/avatar API contract from Phase 3), Day 5 wrap-up snapshot is below.
-- **Blockers:** None.
+- **Last commit:** `dfd0891` chore: dockerize stack (direct on main)
+- **Next step:** Day 6 — Polish + Demo continues. Remaining kickoff items: docs reconciliation (events drift from Day 4 + profile/avatar API contract from Phase 3), seed-data sanity, end-to-end smoke walkthrough.
+- **Blockers:** None. (See Services for the system-Postgres-on-:5432 conflict to resolve before `docker compose up`.)
 
 ## Services
 
-- Backend: **stopped** at session close (uvicorn killed by user request).
-- Frontend: **stopped** at session close (next dev was killed before `npm run build` for the Phase 5 Suspense verification and not restarted).
-- Postgres: running on `:5432` (system service, untouched).
-- Restart cheat sheet: `cd backend && source .venv/bin/activate && uvicorn app.main:app --port 8000 --reload` and `cd frontend && npm run dev`.
+The project now runs via Docker Compose as the primary boot path; native dev still works.
+
+**Primary — full stack via Docker Compose** (from project root):
+
+```
+sudo systemctl stop postgresql   # free :5432 for the db container
+docker compose up --build -d     # build images, start db + backend + frontend
+docker compose logs -f backend   # tail until "Application startup complete"
+docker compose down              # stop (keeps volumes)
+docker compose down -v           # nuke db + uploads volumes for a fresh DB
+```
+
+Host ports: `5432` (db), `8000` (backend), `3000` (frontend). Named volumes: `pgdata` (Postgres data), `uploads` (backend `/app/uploads`).
+
+**Alternate — native dev** (against host Postgres on `:5432`):
+
+```
+cd backend && source .venv/bin/activate && uvicorn app.main:app --port 8000 --reload
+cd frontend && npm run dev
+```
+
+Uses `backend/.env` `DATABASE_URL` as-is (points at `localhost:5432`). The compose file overrides `DATABASE_URL` to `db:5432` for in-container use, so both modes coexist without editing `.env`.
+
+At session close: backend + frontend both **stopped** (containers down). Host Postgres state untouched (still installed; whether running depends on whether you stopped it for compose).
 
 ## Day Progress
 
@@ -97,9 +117,15 @@
   - stale `curl :5433` permission dropped from `.claude/settings.local.json` (local-only, not in commit)
 - Phase 6 (Day 6 — Polish + Demo) not yet started.
 
-### Day 6 — Polish + Demo 🔜
+### Day 6 — Polish + Demo 🚧 in progress
 
-Not started.
+- **Docker setup** ✅ landed direct on main as `dfd0891` (single commit, no PR per CLAUDE.md "trivial chores can land directly on main"):
+  - `backend/Dockerfile` — python:3.12-slim, non-root `appuser` (uid 1000), `pip install .` from pyproject.toml, `CMD` runs `alembic upgrade head && uvicorn`.
+  - `frontend/Dockerfile` — multi-stage node:20-alpine; build stage emits Next.js standalone, runtime stage serves via `node server.js` as the `node` user; `NEXT_PUBLIC_API_BASE_URL` accepted as build-arg (baked into the bundle).
+  - `frontend/next.config.mjs` — added `output: 'standalone'` (only application-adjacent change required).
+  - `docker-compose.yml` — replaces the orphaned alternate-Postgres-on-:5433 file (Day 2 leftover). Three services: `db` (postgres:16-alpine, `pg_isready` healthcheck, named volume `pgdata`), `backend` (env_file + `DATABASE_URL` override to `db:5432`, `uploads` named volume mounted at `/app/uploads`, `depends_on: db {condition: service_healthy}`), `frontend` (build-arg + env_file from `.env.local`, `depends_on: backend`). Host port mappings: 5432, 8000, 3000.
+  - `backend/.dockerignore` + `frontend/.dockerignore` — exclude per requested list (`node_modules`, `.next`, `__pycache__`, `.venv`, `.env*`, `uploads/`, `.git`) plus standard cruft.
+- Remaining Day 6 work (not started): docs reconciliation (`docs/03-database-schema.md` + `docs/04-api-spec.md` drift from Day 4 events and Phase 3 profile/avatar — see Open Tech Debt), seed-data sanity, end-to-end smoke walkthrough across all 4 modules + home + profile.
 
 ## Open Tech Debt
 
@@ -154,6 +180,7 @@ Short bullets of "we chose X over Y because Z" — for context recovery.
 32. **`docker-compose.yml` kept-with-comment over removed** [Phase 5] — Day 2's `8df217c` switched DATABASE_URL to system Postgres on `:5432`, leaving the compose file (Postgres-on-:5433) orphaned. Removing it loses an option for contributors without a native Postgres install for ~zero ongoing cost; a 7-line header comment annotates it as alternate setup with the env-var override needed to use it.
 33. **Suspense fix style: thin outer wrapper renaming body to `<Name>PageContent`** [Phase 5] — for each of the 4 list pages with `useSearchParams`, the default export becomes `<Suspense fallback={<PageFallback />}><PageContent /></Suspense>`; the original body is renamed to `<Name>PageContent` and the fallback is a header+filter+list skeleton matching the page's chrome. Smallest possible diff that satisfies Next 15's CSR-bailout boundary requirement; alternatives like extracting only the search-param-reading sub-block would have churned more JSX for no functional gain.
 34. **npm audit accept-for-v1** [Phase 5] — 5 Next.js CVEs (re-attributed from `react-big-calendar` to `next` itself + its eslint plugin) require a `next@16.2.6` major bump to patch. Decided to document and accept rather than patch: CVEs affect dev-server / image-optimization paths not used by the localhost demo, and a Next major mid-graduation-project is too risky.
+35. **Docker as primary boot path; native dev preserved** [Day 6] — `docker compose up` is the one-command demo path; native `uvicorn` + `npm run dev` still works against host Postgres. Three concrete sub-decisions: (a) **named volume `uploads`** for backend `/app/uploads` rather than a host bind mount — survives container rebuilds without coupling demo state to the host filesystem layout (and avoids the uid-mismatch papercut a bind would create against the non-root `appuser`); (b) **build-arg for `NEXT_PUBLIC_API_BASE_URL`** because `NEXT_PUBLIC_*` is baked into the bundle at build time; runtime `env_file: frontend/.env.local` is kept anyway per the user instruction (harmless, useful for any future server-side env); (c) **`environment: DATABASE_URL` in compose overrides `backend/.env`** so the file can keep its native-dev value (`localhost:5432`) while the container uses the compose-network hostname (`db:5432`). The orphaned alternate-Postgres-on-:5433 compose file (Day 2 leftover, Decision #32) was replaced rather than kept — its sole use case (no native Postgres) is now subsumed by the new `db` service.
 
 ## Recent Session Snapshots
 
@@ -206,3 +233,13 @@ Short bullets of "we chose X over Y because Z" — for context recovery.
 - **Done this session:** Merged `feature/navbar-links` (PR #5, 1 commit `5533e9a`). Navbar now exposes 5 module links (Notlar / Marketplace / Etkinlikler / Buddy / Mesajlar) on desktop (between logo and right-side actions) and inside the existing mobile hamburger sheet. Active route gets `bg-accent` + `font-medium` + `aria-current="page"`; `isActiveLink` uses prefix match so `/events/123` keeps "Etkinlikler" highlighted. New "Profilim" dropdown item between user header and "Çıkış yap" → `/profile/me` (404 until Phase 3). Links + Profilim gated to `hydrated && user`, matching the existing avatar-dropdown gating so guests still only see Giriş / Kaydol. (Context: Phase 1 — `feature/buddy` study-buddy module — was merged earlier today as PR #4; full Day 5 wrap-up entry deferred to Phase 6 per the kickoff plan.)
 - **Next:** Phase 3 — profile pages. Backend: `PATCH /auth/me` (display_name/university/department), `GET /users/{user_id}/profile` (public DTO with counts). Frontend: `/profile/me` (view + edit), `/profile/[userId]` (public), wire seller/uploader/organizer name links. Pausing for kickoff approval.
 - **Unresolved:** Day 3 "No navbar links to feature pages" tech-debt item is now closed by this PR — Open Tech Debt list still shows it; cleanup happens in Phase 5 (`chore/tech-debt-cleanup`) along with the other Day 3 debts. Other open items unchanged.
+
+### 2026-05-12 — Day 6 kickoff: dockerize stack
+
+- **Done this session:** Landed Docker setup as `dfd0891` directly on main (single commit, no PR per CLAUDE.md "trivial chores"). Six files: `backend/Dockerfile` (python:3.12-slim, non-root `appuser`, `pip install .`, runs `alembic upgrade head && uvicorn` on start), `frontend/Dockerfile` (multi-stage node:20-alpine → Next standalone runtime as the `node` user, `NEXT_PUBLIC_API_BASE_URL` accepted as build-arg), `frontend/next.config.mjs` (added `output: 'standalone'` — only application-adjacent change), `docker-compose.yml` (replaces the orphaned alternate-Postgres-on-:5433 file from Day 2; three services with `pg_isready`-gated startup, named volumes for `pgdata` + `uploads`, host ports 5432/8000/3000, in-container `DATABASE_URL` overridden to `db:5432` via `environment:` so `backend/.env` can keep its native-dev value), `backend/.dockerignore` + `frontend/.dockerignore` (per-spec exclude list + standard cruft). Decision #35 captures the three Docker sub-decisions (named volume vs bind mount, build-arg for `NEXT_PUBLIC_*`, env override for `DATABASE_URL`). Files written and committed; **`docker compose build` not run yet — boot is unverified end-to-end.**
+- **Next:** Smoke-test the full `docker compose up --build` boot (will require stopping host Postgres on `:5432` first; document conflict already noted in Services section). Then continue Day 6 kickoff items: docs reconciliation (`docs/03-database-schema.md` + `docs/04-api-spec.md` drift from Day 4 events + Phase 3 profile/avatar), seed-data sanity, end-to-end smoke walkthrough across all 4 modules + home + profile.
+- **Unresolved:**
+  - **Docker boot unverified** — files committed without running `docker compose build` end-to-end. First run from a clean state should be done before relying on this for the demo.
+  - Host Postgres on `:5432` will conflict with the new `db` service's `5432:5432` mapping; documented in the Services section, will need `sudo systemctl stop postgresql` before `docker compose up`.
+  - Backend + frontend both stopped at session close (no containers up, no native dev servers running).
+  - All Day 5 carry-overs unchanged: docs drift (single Open Tech Debt entry covering Day 4 events + Phase 3 profile/avatar), Next.js CVEs accepted-for-v1, bcrypt 72-byte truncation, localStorage JWT exposure.
