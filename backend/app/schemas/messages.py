@@ -5,9 +5,13 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class MessageCreate(BaseModel):
-    listing_id: UUID
-    recipient_id: UUID
-    body: str = Field(min_length=1, max_length=5000)
+    listing_id: UUID = Field(description="Mesajın ait olduğu ilan ID'si")
+    recipient_id: UUID = Field(description="Alıcı kullanıcının ID'si")
+    body: str = Field(
+        min_length=1,
+        max_length=5000,
+        description="Mesaj içeriği (en az 1, en fazla 5000 karakter)",
+    )
 
 
 class MessageRead(BaseModel):

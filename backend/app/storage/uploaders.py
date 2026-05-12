@@ -28,12 +28,14 @@ AVATAR_EXTENSIONS = (".jpg", ".jpeg", ".png")
 
 class UnsupportedMediaTypeError(AppError):
     status_code = 415
-    error_code = "unsupported_media_type"
+    error_code = "UNSUPPORTED_MEDIA_TYPE"
+    default_message = "Desteklenmeyen dosya türü"
 
 
 class PayloadTooLargeError(AppError):
     status_code = 413
-    error_code = "payload_too_large"
+    error_code = "PAYLOAD_TOO_LARGE"
+    default_message = "Dosya çok büyük"
 
 
 def save_pdf(file: UploadFile, subdir: str = "notes") -> tuple[str, int]:

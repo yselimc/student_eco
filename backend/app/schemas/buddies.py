@@ -65,10 +65,22 @@ class ContactInfoRead(BaseModel):
 
 
 class BuddyProfileWrite(BaseModel):
-    looking_for: str = Field(min_length=10, max_length=500)
-    courses: list[str] = Field(min_length=1, max_length=20)
-    available_days: list[Weekday] = Field(min_length=1, max_length=7)
-    study_style: StudyStyle
+    looking_for: str = Field(
+        min_length=10,
+        max_length=500,
+        description="Ne tür bir çalışma arkadaşı aradığınız (en az 10 karakter)",
+    )
+    courses: list[str] = Field(
+        min_length=1,
+        max_length=20,
+        description="Çalıştığınız dersler (en az 1, en fazla 20)",
+    )
+    available_days: list[Weekday] = Field(
+        min_length=1,
+        max_length=7,
+        description="Müsait olduğunuz günler",
+    )
+    study_style: StudyStyle = Field(description="Çalışma tarzı: quiet, group veya cafe")
     contact_info: ContactInfoWrite
 
     @field_validator("looking_for")
@@ -76,7 +88,7 @@ class BuddyProfileWrite(BaseModel):
     def _strip_looking_for(cls, v: str) -> str:
         stripped = v.strip()
         if len(stripped) < 10:
-            raise ValueError("looking_for must be at least 10 characters after trimming")
+            raise ValueError("Aradığınız açıklama en az 10 karakter olmalıdır")
         return stripped
 
     @field_validator("courses")
@@ -94,7 +106,7 @@ class BuddyProfileWrite(BaseModel):
             seen.add(key)
             result.append(cleaned)
         if not result:
-            raise ValueError("courses must contain at least one non-empty value")
+            raise ValueError("Dersler en az bir geçerli değer içermelidir")
         return result
 
     @field_validator("available_days")

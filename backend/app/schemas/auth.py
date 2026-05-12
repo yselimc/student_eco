@@ -11,14 +11,22 @@ if TYPE_CHECKING:
 
 
 class RegisterRequest(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
-    display_name: str = Field(min_length=1, max_length=100)
+    email: EmailStr = Field(description="Kullanıcının e-posta adresi")
+    password: str = Field(
+        min_length=8,
+        max_length=128,
+        description="Şifre (en az 8, en fazla 128 karakter)",
+    )
+    display_name: str = Field(
+        min_length=1,
+        max_length=100,
+        description="Görünen isim (en az 1, en fazla 100 karakter)",
+    )
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=1, max_length=128)
+    email: EmailStr = Field(description="Kullanıcının e-posta adresi")
+    password: str = Field(min_length=1, max_length=128, description="Şifre")
 
 
 class UserOut(BaseModel):

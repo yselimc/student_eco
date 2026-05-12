@@ -15,7 +15,8 @@ from app.schemas.buddies import BuddyProfileWrite, STUDY_STYLES, WEEKDAYS
 
 class BuddyContactRequiredError(ValidationFailedError):
     status_code = 422
-    error_code = "buddy_contact_required"
+    error_code = "BUDDY_CONTACT_REQUIRED"
+    default_message = "En az bir iletişim yöntemi (Instagram, Discord veya telefon) gereklidir"
 
 
 class BuddyService:

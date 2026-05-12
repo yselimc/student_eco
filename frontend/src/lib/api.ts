@@ -1,13 +1,17 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
+export type FieldErrors = Record<string, string>;
+
 export class ApiError extends Error {
   status: number;
   code: string;
+  fieldErrors: FieldErrors;
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, fieldErrors: FieldErrors = {}) {
     super(message);
     this.status = status;
     this.code = code;
+    this.fieldErrors = fieldErrors;
   }
 }
 
@@ -27,15 +31,32 @@ function buildHeaders(headers: HeadersInit | undefined, token: string | null | u
   return finalHeaders;
 }
 
+function parseFieldErrors(payload: Record<string, unknown>): FieldErrors {
+  const errors = payload.errors;
+  if (!Array.isArray(errors)) return {};
+  const result: FieldErrors = {};
+  for (const item of errors) {
+    if (!item || typeof item !== "object") continue;
+    const obj = item as Record<string, unknown>;
+    if (typeof obj.field !== "string" || typeof obj.message !== "string") continue;
+    // First occurrence wins so a form's primary error per field stays stable.
+    if (!(obj.field in result)) {
+      result[obj.field] = obj.message;
+    }
+  }
+  return result;
+}
+
 async function throwFromResponse(response: Response, payload: unknown): Promise<never> {
-  const fallbackMessage = response.statusText || "Request failed";
+  const fallbackMessage = response.statusText || "İstek başarısız";
   if (payload && typeof payload === "object") {
     const obj = payload as Record<string, unknown>;
     const detail = typeof obj.detail === "string" ? obj.detail : fallbackMessage;
-    const code = typeof obj.code === "string" ? obj.code : "error";
-    throw new ApiError(response.status, code, detail);
+    const code = typeof obj.code === "string" ? obj.code : "ERROR";
+    const fieldErrors = response.status === 422 ? parseFieldErrors(obj) : {};
+    throw new ApiError(response.status, code, detail, fieldErrors);
   }
-  throw new ApiError(response.status, "error", fallbackMessage);
+  throw new ApiError(response.status, "ERROR", fallbackMessage);
 }
 
 export async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {

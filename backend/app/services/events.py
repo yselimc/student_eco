@@ -24,7 +24,8 @@ from app.schemas.events import EVENT_CATEGORIES
 
 
 class EventFullError(ConflictError):
-    error_code = "event_full"
+    error_code = "EVENT_FULL"
+    default_message = "Etkinlik kontenjanı dolu"
 
 
 class EventService:

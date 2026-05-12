@@ -166,7 +166,7 @@ export default function MyBuddyProfilePage() {
       toast.success("Profil kaydedildi");
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.code === "buddy_contact_required") {
+        if (err.code === "BUDDY_CONTACT_REQUIRED") {
           setSubmitError(
             "Instagram, Discord veya telefondan en az birini doldur.",
           );

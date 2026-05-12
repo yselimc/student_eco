@@ -41,20 +41,38 @@ class EventListResponse(BaseModel):
 
 
 class EventCreate(BaseModel):
-    title: str = Field(min_length=1, max_length=200)
-    description: str | None = Field(default=None, max_length=2000)
-    category: EventCategory
-    location: str | None = Field(default=None, max_length=200)
-    starts_at: datetime
-    ends_at: datetime | None = None
-    max_attendees: int | None = Field(default=None, ge=1)
+    title: str = Field(
+        min_length=1,
+        max_length=200,
+        description="Etkinlik başlığı (en az 1, en fazla 200 karakter)",
+    )
+    description: str | None = Field(
+        default=None,
+        max_length=2000,
+        description="Etkinlik açıklaması (en fazla 2000 karakter)",
+    )
+    category: EventCategory = Field(
+        description="Kategori: academic, social, sports, culture veya other",
+    )
+    location: str | None = Field(
+        default=None,
+        max_length=200,
+        description="Etkinlik konumu (en fazla 200 karakter)",
+    )
+    starts_at: datetime = Field(description="Başlangıç zamanı (UTC ISO 8601)")
+    ends_at: datetime | None = Field(default=None, description="Bitiş zamanı (UTC ISO 8601)")
+    max_attendees: int | None = Field(
+        default=None,
+        ge=1,
+        description="Maksimum katılımcı sayısı (en az 1; sınırsız için boş bırakın)",
+    )
 
     @field_validator("title")
     @classmethod
     def _strip_title(cls, v: str) -> str:
         stripped = v.strip()
         if not stripped:
-            raise ValueError("title cannot be blank")
+            raise ValueError("Başlık boş olamaz")
         return stripped
 
 
